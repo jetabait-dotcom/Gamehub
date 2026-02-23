@@ -3,1081 +3,736 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AnimeGuess — Game Hub</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+Thai:wght@300;400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<title>AnimeGuess</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Sarabun:wght@300;400;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#04020e;--gold:#ffd700;--orange:#ff9f43;
-  --neon-blue:#00d4ff;--neon-purple:#b44fff;--sakura:#ff6b9d;
-  --green:#00ffaa;--muted:rgba(255,220,150,.45);--text:#fff8e7;
-  --surface:rgba(255,215,0,.05);--border:rgba(255,215,0,.13);
-  --p1:#00d4ff;--p1g:rgba(0,212,255,.35);
-  --p2:#ff9f43;--p2g:rgba(255,159,67,.35);
-}
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html,body{min-height:100vh}
-body{background:var(--bg);color:var(--text);font-family:'Noto Sans Thai',sans-serif;overflow-x:hidden}
-body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:radial-gradient(ellipse at 15% 10%,rgba(255,215,0,.07) 0%,transparent 55%),
-             radial-gradient(ellipse at 85% 85%,rgba(255,159,67,.07) 0%,transparent 55%)}
-.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;animation:orbDrift ease-in-out infinite}
-@keyframes orbDrift{0%,100%{transform:translate(0,0)}50%{transform:translate(20px,-25px)}}
-#stars{position:fixed;inset:0;z-index:0;pointer-events:none}
-.wrapper{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+  html,body{scrollbar-width:none;-ms-overflow-style:none;}
+  html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0;}
 
-/* LOADING */
-#loadingOverlay{position:fixed;inset:0;z-index:999;background:var(--bg);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
-.spin{width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-txt{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:.3em;color:var(--muted)}
+:root {
+  --bg:      #0f0900;
+  --surface: rgba(255,140,30,.05);
+  --border:  rgba(200,100,30,.18);
+  --gold:    #e8832a;
+  --gold2:   #c44b0f;
+  --amber:   #f5a623;
+  --crimson: #c0392b;
+  --p1c:     #e8832a;
+  --p2c:     #c44b0f;
+  --text:    #f5e6d0;
+  --muted:   rgba(245,200,160,.45);
+  --green:   #8fbc5a;
+  --radius:  18px;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { min-height:100vh; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Sarabun', sans-serif;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 0%,   rgba(180,60,10,.22) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 45% at 85% 100%,  rgba(120,40,5,.28)  0%, transparent 65%),
+    radial-gradient(ellipse 40% 30% at 50% 50%,   rgba(80,20,0,.15)   0%, transparent 70%);
+}
+#stars { position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+.wrap { position:relative; z-index:1; min-height:100vh; display:flex; flex-direction:column; }
 
 /* NAV */
-nav{display:flex;align-items:center;justify-content:space-between;padding:16px 36px;
-  border-bottom:1px solid var(--border);backdrop-filter:blur(20px);
-  background:rgba(4,2,14,.75);position:sticky;top:0;z-index:50}
-.nav-logo{display:flex;align-items:center;gap:12px;text-decoration:none}
-.logo-cube{width:36px;height:36px;background:linear-gradient(135deg,var(--gold),var(--orange));
-  border-radius:10px;display:grid;place-items:center;font-size:18px;
-  box-shadow:0 0 22px rgba(255,215,0,.5);animation:cubePulse 3s ease-in-out infinite}
-@keyframes cubePulse{0%,100%{box-shadow:0 0 22px rgba(255,215,0,.5)}50%{box-shadow:0 0 40px rgba(255,215,0,.7)}}
-.logo-label{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;letter-spacing:.18em;
-  background:linear-gradient(135deg,#fff 20%,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.nav-right{display:flex;align-items:center;gap:12px}
-.nav-pill{padding:5px 14px;border-radius:20px;font-size:10px;font-family:'Orbitron',monospace;
-  letter-spacing:.1em;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);color:var(--gold)}
-.back-btn{display:flex;align-items:center;gap:7px;text-decoration:none;padding:7px 14px;
-  border-radius:10px;border:1px solid var(--border);color:var(--muted);font-size:13px;transition:all .2s}
-.back-btn:hover{border-color:rgba(255,215,0,.4);color:var(--text)}
-.back-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+nav {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 28px; border-bottom:1px solid var(--border);
+  background:rgba(15,9,0,.88); backdrop-filter:blur(20px); border-bottom:1px solid rgba(180,80,20,.2);
+  position:sticky; top:0; z-index:50;
+}
+.nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
+.logo-mark {
+  width:34px; height:34px; border-radius:10px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  display:grid; place-items:center; font-size:17px;
+  box-shadow:0 0 20px rgba(200,80,15,.4);
+}
+.logo-txt {
+  font-family:'Orbitron',monospace; font-size:14px; font-weight:700; letter-spacing:.15em;
+  background:linear-gradient(135deg,#f5e6d0,var(--gold),var(--gold2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.back-link {
+  display:flex; align-items:center; gap:6px;
+  text-decoration:none; color:var(--muted); font-size:13px;
+  padding:6px 12px; border-radius:9px; border:1px solid var(--border); transition:all .2s;
+}
+.back-link:hover { color:var(--text); border-color:rgba(255,255,255,.18); }
+.back-link svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+
+/* LOADING */
+#loadingOverlay {
+  display:none!important;
+  position:fixed; inset:0; z-index:999; background:var(--bg);
+  flex-direction:column; align-items:center; justify-content:center; gap:14px;
+}
+.spin { width:42px; height:42px; border:3px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin 1s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.load-txt { font-family:'Orbitron',monospace; font-size:11px; letter-spacing:.3em; color:var(--muted); }
+
+
+
 
 /* SCREENS */
-.screen{display:none;flex:1}.screen.active{display:flex;flex-direction:column}
-@keyframes riseUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
-@keyframes popIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.screen { display:none; flex:1; flex-direction:column; align-items:center; padding:36px 16px 80px; gap:22px; }
+.screen.active { display:flex; }
+@keyframes rise { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+@keyframes pop  { from{opacity:0;transform:scale(.92)} to{opacity:1;transform:scale(1)} }
 
-/* ══ LOBBY ══ */
-.lobby-inner{display:flex;flex-direction:column;align-items:center;gap:24px;padding:48px 24px 80px;text-align:center}
-.lobby-eyebrow{font-size:11px;letter-spacing:.5em;text-transform:uppercase;color:var(--gold);text-shadow:0 0 14px rgba(255,215,0,.6);opacity:0;animation:riseUp .8s .05s forwards}
-.lobby-title{font-family:'Cinzel Decorative',cursive;font-size:clamp(34px,7vw,66px);font-weight:900;line-height:1;
-  background:linear-gradient(140deg,#fff 0%,#ffe066 45%,var(--orange) 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  filter:drop-shadow(0 0 30px rgba(255,215,0,.4));opacity:0;animation:riseUp .8s .1s forwards}
-.lobby-sub{font-size:clamp(13px,1.7vw,15px);color:var(--muted);line-height:1.85;max-width:480px;opacity:0;animation:riseUp .8s .18s forwards}
-.mode-section{display:flex;flex-direction:column;align-items:center;gap:14px;max-width:520px;width:100%;opacity:0;animation:riseUp .7s .22s forwards}
-.mode-label{font-size:11px;letter-spacing:.35em;text-transform:uppercase;color:var(--muted)}
-.mode-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}
-.mode-card{padding:20px 16px;border-radius:18px;border:1px solid var(--border);background:var(--surface);
-  cursor:pointer;transition:all .25s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
-.mode-card:hover{border-color:rgba(255,215,0,.4);transform:translateY(-3px);background:rgba(255,215,0,.1)}
-.mode-card.active{border-color:var(--gold);background:rgba(255,215,0,.1);box-shadow:0 0 24px rgba(255,215,0,.2)}
-.mode-icon{font-size:32px}
-.mode-name{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;color:#fff;letter-spacing:.1em}
-.mode-desc{font-size:11px;color:var(--muted);line-height:1.5}
-.room-panel{display:flex;flex-direction:column;align-items:center;gap:12px;max-width:440px;width:100%;opacity:0;animation:riseUp .6s .1s forwards}
-.room-panel-title{font-size:13px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold)}
-.room-tab{flex:1;padding:10px 16px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03);
-  color:var(--muted);font-family:'Noto Sans Thai',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
-.room-tab:hover{border-color:rgba(255,215,0,.3);color:var(--text)}
-.room-tab.active{background:rgba(255,215,0,.1);border-color:rgba(255,215,0,.55);color:var(--gold)}
-.room-input{flex:1;padding:12px 16px;background:rgba(255,215,0,.04);border:1px solid var(--border);
-  border-radius:12px;color:var(--text);font-family:'Orbitron',monospace;font-size:15px;outline:none;transition:all .2s;text-align:center}
-.room-input:focus{border-color:var(--gold);box-shadow:0 0 14px rgba(255,215,0,.2);background:rgba(255,215,0,.08)}
-.room-input::placeholder{font-family:'Noto Sans Thai',sans-serif;font-size:13px;letter-spacing:0;color:rgba(255,220,150,.25)}
-.room-btn{padding:12px 20px;border-radius:12px;border:none;font-family:'Noto Sans Thai',sans-serif;
-  font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
-.room-btn.create{background:linear-gradient(135deg,var(--gold),var(--orange));color:#000;box-shadow:0 4px 18px rgba(255,215,0,.3)}
-.room-btn.create:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(255,215,0,.45)}
-.room-btn.join{background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.3);color:var(--p1)}
-.room-btn.join:hover{background:rgba(0,212,255,.2);transform:translateY(-2px)}
-.room-code-display{padding:16px 24px;background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.3);border-radius:14px;text-align:center;width:100%}
-.room-code-label{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
-.room-code-val{font-family:'Orbitron',monospace;font-size:28px;font-weight:900;letter-spacing:.25em;
-  background:linear-gradient(135deg,var(--gold),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.room-code-hint{font-size:11px;color:var(--muted);margin-top:6px}
-.waiting-box{display:flex;flex-direction:column;align-items:center;gap:10px;
-  padding:16px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:12px;width:100%;margin-top:8px}
-.dot-anim span{animation:dotB 1.4s infinite both}
-.dot-anim span:nth-child(2){animation-delay:.2s}
-.dot-anim span:nth-child(3){animation-delay:.4s}
-@keyframes dotB{0%,80%,100%{opacity:.2}40%{opacity:1}}
+/* LOBBY */
+.lobby-hero { text-align:center; animation:rise .6s ease both; }
+.lobby-eyebrow { font-size:11px; letter-spacing:.5em; text-transform:uppercase; color:var(--gold); opacity:.8; }
+.lobby-title {
+  font-family:'Cinzel Decorative',cursive; font-size:clamp(38px,8vw,68px); font-weight:900; line-height:1; margin-top:8px;
+  background:linear-gradient(140deg,#ffe8c0 0%,var(--gold) 40%,var(--crimson) 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  filter:drop-shadow(0 0 32px rgba(200,80,15,.5));
+}
+.lobby-sub { font-size:14px; color:var(--muted); margin-top:10px; line-height:1.8; }
 
-/* Question limit selector */
-.qlimit-row{display:flex;align-items:center;gap:10px;width:100%;padding:12px 16px;
-  background:rgba(255,215,0,.04);border:1px solid var(--border);border-radius:12px}
-.qlimit-label{font-size:12px;color:var(--muted);flex:1}
-.qlimit-btns{display:flex;gap:5px}
-.qlimit-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);
-  background:rgba(255,255,255,.03);color:var(--muted);font-family:'Orbitron',monospace;
-  font-size:11px;font-weight:700;cursor:pointer;transition:all .18s}
-.qlimit-btn:hover{border-color:rgba(255,215,0,.4);color:var(--text)}
-.qlimit-btn.active{background:rgba(255,215,0,.15);border-color:rgba(255,215,0,.6);color:var(--gold);box-shadow:0 0 10px rgba(255,215,0,.15)}
+.card {
+  width:100%; max-width:460px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:22px;
+  display:flex; flex-direction:column; gap:14px;
+  animation:rise .6s .08s ease both;
+}
+.card-label { font-size:10px; letter-spacing:.35em; text-transform:uppercase; color:var(--muted); }
 
-/* ══ SETUP SCREEN ══ */
-.setup-inner{display:flex;flex-direction:column;align-items:center;gap:24px;padding:40px 24px 80px;text-align:center;max-width:600px;margin:0 auto;width:100%}
-.setup-title{font-family:'Cinzel Decorative',cursive;font-size:clamp(18px,3vw,26px);
-  background:linear-gradient(135deg,#fff,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  opacity:0;animation:riseUp .7s .05s forwards}
-.setup-card{width:100%;background:rgba(255,215,0,.04);border:1px solid var(--border);border-radius:20px;padding:24px;
-  display:flex;flex-direction:column;gap:16px;opacity:0;animation:riseUp .7s .15s forwards}
-.setup-section-label{font-size:11px;letter-spacing:.35em;text-transform:uppercase;color:var(--muted);text-align:left}
-.setup-ready-badge{padding:10px 20px;background:rgba(0,255,170,.1);border:1px solid rgba(0,255,170,.3);
-  border-radius:10px;font-size:13px;color:var(--green);text-align:center;display:none}
-.setup-btn{padding:15px 50px;background:linear-gradient(135deg,var(--gold),var(--orange));
-  border:none;border-radius:50px;color:#000;font-family:'Orbitron',monospace;font-size:14px;
-  font-weight:700;letter-spacing:.1em;cursor:pointer;transition:all .25s;box-shadow:0 8px 32px rgba(255,215,0,.35)}
-.setup-btn:hover{transform:translateY(-3px);box-shadow:0 12px 42px rgba(255,215,0,.55)}
-.setup-btn:disabled{opacity:.4;cursor:default;transform:none}
-.setup-waiting{font-size:13px;color:var(--muted);text-align:center;display:none}
+.tab-row { display:flex; gap:6px; }
+.tab {
+  flex:1; padding:9px 14px; border-radius:11px; border:1px solid var(--border);
+  background:rgba(255,255,255,.02); color:var(--muted);
+  font-family:'Sarabun',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all .2s;
+}
+.tab:hover { color:var(--text); }
+.tab.active { background:rgba(232,131,42,.12); border-color:rgba(232,131,42,.5); color:var(--gold); }
+
+.inp {
+  width:100%; padding:12px 15px;
+  background:rgba(255,255,255,.04); border:1px solid var(--border);
+  border-radius:11px; color:var(--text); font-family:'Sarabun',sans-serif; font-size:15px;
+  outline:none; transition:all .2s;
+}
+.inp:focus { border-color:var(--gold); background:rgba(232,131,42,.07); box-shadow:0 0 14px rgba(200,80,15,.2); }
+.inp::placeholder { color:rgba(240,234,255,.2); font-size:13px; }
+.inp.mono { font-family:'Orbitron',monospace; font-size:17px; letter-spacing:.2em; text-align:center; }
+
+.btn-gold {
+  padding:13px; width:100%; border:none; border-radius:12px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2)); color:#1a0800;
+  font-family:'Sarabun',sans-serif; font-size:14px; font-weight:700; cursor:pointer;
+  transition:all .2s; box-shadow:0 4px 20px rgba(200,80,15,.35);
+}
+.btn-gold:hover { transform:translateY(-2px); box-shadow:0 7px 28px rgba(200,80,15,.5); }
+.btn-gold:disabled { opacity:.4; cursor:default; transform:none; }
+
+.btn-blue {
+  padding:13px; width:100%; border:1px solid rgba(232,131,42,.35); border-radius:12px;
+  background:rgba(232,131,42,.08); color:var(--p1c);
+  font-family:'Sarabun',sans-serif; font-size:14px; font-weight:700; cursor:pointer; transition:all .2s;
+}
+.btn-blue:hover { background:rgba(232,131,42,.16); transform:translateY(-2px); }
+
+.code-display {
+  text-align:center; padding:16px;
+  background:rgba(180,70,10,.08); border:1px solid rgba(200,90,20,.25); border-radius:12px;
+}
+.code-lbl { font-size:10px; letter-spacing:.4em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+.code-val {
+  font-family:'Orbitron',monospace; font-size:30px; font-weight:900; letter-spacing:.2em;
+  background:linear-gradient(135deg,var(--amber),var(--gold));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.code-hint { font-size:11px; color:var(--muted); margin-top:5px; }
+.waiting-row { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--muted); justify-content:center; }
+.msg { font-size:12px; text-align:center; display:none; margin-top:2px; }
+
+/* SETUP */
+.setup-title {
+  font-family:'Cinzel Decorative',cursive; font-size:clamp(17px,3vw,24px); text-align:center;
+  background:linear-gradient(135deg,#ffe0b0,var(--gold),var(--crimson));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  animation:rise .5s ease both;
+}
+.setup-sub { font-size:13px; color:var(--muted); text-align:center; line-height:1.8; animation:rise .5s .05s ease both; }
 
 /* Autocomplete */
-.ac-wrap{position:relative;width:100%}
-.ac-input{width:100%;padding:13px 16px;background:rgba(255,215,0,.05);border:1px solid var(--border);
-  border-radius:12px;color:var(--text);font-family:'Noto Sans Thai',sans-serif;font-size:15px;outline:none;transition:all .2s}
-.ac-input:focus{border-color:var(--gold);box-shadow:0 0 16px rgba(255,215,0,.2);background:rgba(255,215,0,.08)}
-.ac-input::placeholder{color:rgba(255,220,150,.25)}
-.ac-list{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:400;
-  background:linear-gradient(145deg,#1a0e00,#100800);border:1px solid rgba(255,215,0,.3);
-  border-radius:16px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.8);display:none;max-height:280px;overflow-y:auto}
-.ac-list.open{display:block}
-.ac-list::-webkit-scrollbar{width:4px}
-.ac-list::-webkit-scrollbar-thumb{background:rgba(255,215,0,.3);border-radius:2px}
-.ac-item{display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;
-  transition:background .15s;border-bottom:1px solid rgba(255,215,0,.07)}
-.ac-item:last-child{border-bottom:none}
-.ac-item:hover,.ac-item.hl{background:rgba(255,215,0,.09)}
-.ac-img{width:50px;height:50px;border-radius:10px;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,215,0,.35)}
-.ac-nopic{width:50px;height:50px;border-radius:10px;flex-shrink:0;background:rgba(255,215,0,.08);
-  border:1px solid rgba(255,215,0,.2);display:grid;place-items:center;font-size:22px}
-.ac-info{display:flex;flex-direction:column;gap:3px;min-width:0}
-.ac-name{font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ac-sub{font-size:11px;color:rgba(255,215,0,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ac-meta{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ac-loading{padding:16px;text-align:center;color:var(--muted);font-size:13px}
-.ac-section-head{padding:6px 14px 3px;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,215,0,.35)}
+.ac-wrap { position:relative; width:100%; }
+.ac-list {
+  display:none; position:absolute; top:calc(100% + 5px); left:0; right:0; z-index:300;
+  background:linear-gradient(145deg,#1a0c02,#120800); border:1px solid rgba(200,90,20,.3);
+  border-radius:14px; overflow:hidden; box-shadow:0 18px 50px rgba(0,0,0,.8); max-height:270px; overflow-y:auto;
+}
+.ac-list.open { display:block; }
+.ac-list::-webkit-scrollbar { width:3px; }
+.ac-list::-webkit-scrollbar-thumb { background:rgba(200,90,20,.4); border-radius:2px; }
+.ac-item { display:flex; align-items:center; gap:11px; padding:10px 13px; cursor:pointer; border-bottom:1px solid rgba(200,90,20,.08); transition:background .12s; }
+.ac-item:last-child { border-bottom:none; }
+.ac-item:hover, .ac-item.hl { background:rgba(200,90,20,.12); }
+.ac-img { width:46px; height:46px; border-radius:8px; object-fit:cover; flex-shrink:0; border:1.5px solid rgba(200,120,40,.4); }
+.ac-nopic { width:46px; height:46px; border-radius:8px; flex-shrink:0; background:rgba(180,80,20,.1); border:1px solid rgba(200,100,30,.2); display:grid; place-items:center; font-size:20px; }
+.ac-info { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.ac-name { font-size:14px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ac-sub { font-size:11px; color:rgba(232,160,80,.7); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ac-meta { font-size:11px; color:var(--muted); }
+.ac-head { padding:5px 13px 2px; font-size:9px; letter-spacing:.3em; text-transform:uppercase; color:rgba(200,120,40,.45); }
+.ac-load { padding:14px; text-align:center; color:var(--muted); font-size:13px; }
 
-/* Selected preview */
-.selected-preview{display:flex;align-items:center;gap:14px;padding:12px 16px;
-  background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.25);border-radius:14px;display:none}
-.sel-img{width:56px;height:56px;border-radius:10px;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,215,0,.45)}
-.sel-nopic{width:56px;height:56px;border-radius:10px;background:rgba(255,215,0,.1);display:grid;place-items:center;font-size:26px;flex-shrink:0}
-.sel-name{font-size:14px;font-weight:700;color:#fff}
-.sel-anime{font-size:11px;color:var(--muted);margin-top:3px}
+.sel-prev {
+  display:none; align-items:center; gap:13px; padding:11px 14px;
+  background:rgba(180,70,10,.08); border:1px solid rgba(200,100,30,.25); border-radius:12px;
+}
+.sel-img { width:52px; height:52px; border-radius:9px; object-fit:cover; flex-shrink:0; border:2px solid rgba(200,120,40,.5); }
+.sel-nopic { width:52px; height:52px; border-radius:9px; background:rgba(180,80,20,.14); display:grid; place-items:center; font-size:24px; flex-shrink:0; }
+.sel-name { font-size:14px; font-weight:700; color:#fff; }
+.sel-anime { font-size:11px; color:var(--muted); margin-top:2px; }
 
-/* ══ HINT MODAL (popup for subject owner when opponent requests hint) ══ */
-#hintRequestModal{position:fixed;inset:0;z-index:800;background:rgba(4,2,14,.88);
-  backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:20px}
-#hintRequestModal.open{display:flex;animation:popIn .3s ease}
-.hrm-box{background:linear-gradient(145deg,#160e00,#0e0800);border:1px solid rgba(255,215,0,.3);
-  border-radius:24px;padding:28px 24px;width:100%;max-width:420px;display:flex;flex-direction:column;gap:16px;
-  box-shadow:0 20px 60px rgba(0,0,0,.7)}
-.hrm-icon{font-size:48px;text-align:center}
-.hrm-title{font-family:'Cinzel Decorative',cursive;font-size:18px;color:var(--gold);text-align:center}
-.hrm-sub{font-size:13px;color:var(--muted);text-align:center;line-height:1.6}
-.hrm-input{width:100%;padding:14px 16px;background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.3);
-  border-radius:12px;color:var(--text);font-family:'Noto Sans Thai',sans-serif;font-size:15px;outline:none;transition:all .2s}
-.hrm-input:focus{border-color:var(--gold);box-shadow:0 0 16px rgba(255,215,0,.3)}
-.hrm-input::placeholder{color:rgba(255,220,150,.2)}
-.hrm-btn{padding:13px;background:linear-gradient(135deg,var(--gold),var(--orange));border:none;
-  border-radius:12px;color:#000;font-family:'Noto Sans Thai',sans-serif;font-size:14px;font-weight:700;
-  cursor:pointer;transition:all .2s;box-shadow:0 4px 18px rgba(255,215,0,.3)}
-.hrm-btn:hover{transform:translateY(-1px);box-shadow:0 6px 26px rgba(255,215,0,.5)}
+.ready-badge {
+  padding:9px 16px; background:rgba(143,188,90,.1); border:1px solid rgba(143,188,90,.3);
+  border-radius:10px; font-size:13px; color:var(--green); text-align:center; display:none;
+}
+.setup-waiting { font-size:13px; color:var(--muted); text-align:center; display:none; }
 
-/* ══ GAME SCREEN ══ */
-.game-inner{display:flex;flex-direction:column;align-items:center;gap:14px;padding:16px 16px 60px;width:100%}
-.turn-bar{width:100%;max-width:720px;display:flex;gap:10px}
-.player-bar{flex:1;padding:10px 14px;border-radius:14px;border:2px solid transparent;
-  display:flex;align-items:center;gap:10px;transition:all .35s;background:rgba(255,255,255,.03)}
-.player-bar.active-turn{border-color:var(--pc);box-shadow:0 0 22px color-mix(in srgb,var(--pc) 35%,transparent);background:rgba(255,255,255,.06)}
-.p-avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:16px;flex-shrink:0}
-.p1-bar{--pc:var(--p1)}.p1-bar .p-avatar{background:linear-gradient(135deg,var(--p1),#0099ff);box-shadow:0 0 12px var(--p1g)}
-.p2-bar{--pc:var(--p2);flex-direction:row-reverse;text-align:right}.p2-bar .p-avatar{background:linear-gradient(135deg,var(--p2),#ff6600);box-shadow:0 0 12px var(--p2g)}
-.p-info{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
-.p2-bar .p-info{align-items:flex-end}
-.p-name{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.p-score{font-family:'Orbitron',monospace;font-size:19px;font-weight:900;
-  background:linear-gradient(135deg,var(--pc),white);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.turn-center{display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;padding:0 8px}
-.vs-txt{font-family:'Orbitron',monospace;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:.15em}
-.turn-lbl{font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);
-  text-shadow:0 0 8px rgba(255,215,0,.6);animation:blink 1.2s ease-in-out infinite alternate}
-@keyframes blink{from{opacity:.5}to{opacity:1}}
+/* GAME */
+.players-bar {
+  width:100%; max-width:580px; display:flex; align-items:center; gap:8px;
+}
+.player-chip {
+  flex:1; padding:11px 14px; border-radius:14px; border:1.5px solid transparent;
+  background:rgba(255,255,255,.03); display:flex; align-items:center; gap:10px;
+}
+.player-chip.p2c { flex-direction:row-reverse; }
+.player-chip .p-av {
+  width:32px; height:32px; border-radius:50%; display:grid; place-items:center; font-size:15px; flex-shrink:0;
+}
+.player-chip.p1c .p-av { background:linear-gradient(135deg,var(--p1c),#8b2500); box-shadow:0 0 12px rgba(200,80,20,.35); }
+.player-chip.p2c .p-av { background:linear-gradient(135deg,var(--p2c),#7a1a00); box-shadow:0 0 12px rgba(180,60,10,.35); }
+.p-name-txt { font-family:'Orbitron',monospace; font-size:10px; color:rgba(255,255,255,.65); letter-spacing:.05em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.vs-mid { font-family:'Orbitron',monospace; font-size:11px; color:rgba(220,140,60,.35); letter-spacing:.15em; flex-shrink:0; }
 
-.guess-area{width:100%;max-width:720px;background:rgba(255,215,0,.03);border:1px solid var(--border);
-  border-radius:22px;padding:24px;display:flex;flex-direction:column;gap:16px}
-.phase-lbl{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--gold)}
-.guess-q{font-family:'Cinzel Decorative',cursive;font-size:clamp(14px,2.2vw,18px);
-  color:#fff;line-height:1.5;text-align:center;padding:4px 0}
-.qs{color:var(--gold);text-shadow:0 0 16px rgba(255,215,0,.5)}
+.my-subject {
+  width:100%; max-width:580px;
+  background:linear-gradient(135deg,rgba(200,100,30,.08),rgba(180,60,10,.04));
+  border:1px solid rgba(200,100,30,.25); border-radius:16px;
+  padding:14px 18px; display:flex; align-items:center; gap:14px;
+}
+.ms-img { width:56px; height:56px; border-radius:10px; object-fit:cover; flex-shrink:0; border:2px solid rgba(200,120,40,.4); }
+.ms-nopic { width:56px; height:56px; border-radius:10px; background:rgba(180,80,20,.14); display:grid; place-items:center; font-size:26px; flex-shrink:0; }
+.ms-lbl { font-size:9px; letter-spacing:.35em; text-transform:uppercase; color:rgba(220,140,60,.7); margin-bottom:4px; }
+.ms-name { font-size:15px; font-weight:700; color:#fff; }
+.ms-anime { font-size:11px; color:var(--muted); margin-top:2px; }
 
-.hint-panel{display:flex;flex-direction:column;gap:8px}
-.hint-panel-lbl{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted)}
-.hint-items{display:flex;flex-direction:column;gap:6px}
-.hint-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;
-  background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.18);border-radius:10px;
-  animation:hintReveal .35s ease}
-@keyframes hintReveal{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
-.hint-num{width:20px;height:20px;border-radius:50%;background:rgba(255,215,0,.2);
-  display:grid;place-items:center;font-size:10px;color:var(--gold);flex-shrink:0;font-family:'Orbitron',monospace}
-.hint-text{font-size:13px;color:rgba(255,255,255,.85);line-height:1.5}
-.hint-waiting{display:flex;align-items:center;gap:8px;padding:10px 14px;
-  background:rgba(180,79,255,.07);border:1px solid rgba(180,79,255,.2);border-radius:10px;
-  font-size:12px;color:#c084fc;display:none}
-.hint-waiting.show{display:flex}
+.reveal-btn-big {
+  width:100%; max-width:580px; padding:18px;
+  border:none; border-radius:16px; cursor:pointer;
+  font-family:'Sarabun',sans-serif; font-size:16px; font-weight:700;
+  background:linear-gradient(135deg,rgba(192,57,43,.2),rgba(180,50,10,.1));
+  border:1.5px solid rgba(192,57,43,.45); color:#e05c3a;
+  transition:all .25s; letter-spacing:.05em;
+  box-shadow:0 4px 24px rgba(255,107,107,.1);
+}
+.reveal-btn-big:hover { background:linear-gradient(135deg,rgba(192,57,43,.32),rgba(180,50,10,.18)); box-shadow:0 8px 32px rgba(180,50,10,.3); transform:translateY(-2px); }
+.reveal-btn-big:disabled { opacity:.35; cursor:default; transform:none; }
+.reveal-note { font-size:12px; color:var(--muted); }
 
-/* Reveal box */
-.reveal-box{padding:20px 24px;background:rgba(255,107,157,.07);border:2px solid rgba(255,107,157,.3);
-  border-radius:18px;text-align:center;display:none;flex-direction:column;gap:10px;align-items:center}
-.reveal-box.show{display:flex;animation:riseUp .4s ease}
-.reveal-lbl{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:rgba(255,107,157,.8)}
-.reveal-img{width:90px;height:90px;border-radius:14px;object-fit:cover;border:2px solid rgba(255,215,0,.5);box-shadow:0 0 24px rgba(255,215,0,.3)}
-.reveal-answer{font-family:'Cinzel Decorative',cursive;font-size:clamp(18px,3vw,24px);
-  background:linear-gradient(135deg,#fff,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  filter:drop-shadow(0 0 20px rgba(255,215,0,.4))}
-.reveal-anime{font-size:12px;color:var(--muted)}
+/* ANSWERS */
+.answers-title {
+  font-family:'Cinzel Decorative',cursive; font-size:clamp(18px,4vw,28px); text-align:center;
+  background:linear-gradient(135deg,#ffe0b0,var(--amber),var(--crimson));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  filter:drop-shadow(0 0 24px rgba(180,60,10,.5)); animation:pop .5s ease both;
+}
+.answers-grid { width:100%; max-width:560px; display:flex; flex-direction:column; gap:14px; }
+.ans-card {
+  display:flex; align-items:center; gap:16px; padding:18px 20px;
+  border-radius:20px; background:var(--surface); border:1.5px solid var(--border);
+  animation:rise .4s ease both;
+}
+.ans-card:nth-child(2){ animation-delay:.08s; }
+.ans-card.p1-card { border-color:rgba(200,100,30,.35); background:rgba(180,80,20,.07); }
+.ans-card.p2-card { border-color:rgba(160,50,10,.35); background:rgba(140,40,5,.07); }
+.ans-img { width:82px; height:82px; border-radius:13px; object-fit:cover; flex-shrink:0; border:2px solid rgba(255,255,255,.15); }
+.ans-nopic { width:82px; height:82px; border-radius:13px; background:rgba(255,255,255,.05); display:grid; place-items:center; font-size:34px; flex-shrink:0; }
+.ans-info { flex:1; min-width:0; }
+.ans-owner { font-size:10px; letter-spacing:.25em; text-transform:uppercase; margin-bottom:5px; }
+.ans-card.p1-card .ans-owner { color:var(--gold); }
+.ans-card.p2-card .ans-owner { color:var(--crimson); }
+.ans-name { font-size:20px; font-weight:700; color:#fff; line-height:1.3; }
+.ans-anime { font-size:12px; color:var(--muted); margin-top:4px; }
 
-.qs-left{font-size:11px;color:var(--muted);text-align:center;letter-spacing:.1em}
+.again-row { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; width:100%; max-width:560px; animation:rise .4s .15s ease both; }
+.btn-outline {
+  padding:12px 28px; border-radius:50px; border:1px solid var(--border);
+  background:transparent; color:var(--muted); font-family:'Sarabun',sans-serif; font-size:14px; font-weight:600;
+  cursor:pointer; transition:all .2s;
+}
+.btn-outline:hover { border-color:rgba(255,255,255,.25); color:var(--text); }
 
-.guess-input-row{display:flex;gap:8px}
-.guess-input{flex:1;padding:13px 16px;background:rgba(255,215,0,.05);border:1px solid var(--border);
-  border-radius:12px;color:var(--text);font-family:'Noto Sans Thai',sans-serif;font-size:15px;outline:none;transition:all .2s}
-.guess-input:focus{border-color:var(--gold);box-shadow:0 0 14px rgba(255,215,0,.2);background:rgba(255,215,0,.08)}
-.guess-input::placeholder{color:rgba(255,220,150,.25)}
-.guess-input:disabled{opacity:.4}
-.guess-btn{padding:13px 20px;border-radius:12px;border:none;font-family:'Noto Sans Thai',sans-serif;
-  font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;
-  background:linear-gradient(135deg,var(--gold),var(--orange));color:#000;box-shadow:0 4px 16px rgba(255,215,0,.3)}
-.guess-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(255,215,0,.45)}
-.guess-btn:disabled{opacity:.4;cursor:default;transform:none}
-
-.action-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-.act-btn{padding:10px 18px;border-radius:12px;font-family:'Noto Sans Thai',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
-.act-hint{background:rgba(180,79,255,.15);border:1px solid rgba(180,79,255,.4);color:#c084fc}
-.act-hint:hover{background:rgba(180,79,255,.25)}
-.act-hint:disabled{opacity:.35;cursor:default}
-.act-reveal{background:rgba(255,107,157,.12);border:1px solid rgba(255,107,157,.35);color:#ff6b9d}
-.act-reveal:hover{background:rgba(255,107,157,.22)}
-.act-reveal:disabled{opacity:.35;cursor:default}
-.act-pass{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4)}
-.act-pass:hover{background:rgba(255,255,255,.1);color:#fff}
-.act-pass:disabled{opacity:.35;cursor:default}
-
-.guess-history{display:flex;flex-direction:column;gap:5px;max-height:150px;overflow-y:auto}
-.guess-history::-webkit-scrollbar{width:3px}
-.guess-history::-webkit-scrollbar-thumb{background:rgba(255,215,0,.3);border-radius:2px}
-.g-log{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;font-size:12px}
-.g-log.correct{background:rgba(0,255,170,.1);border:1px solid rgba(0,255,170,.25);color:var(--green)}
-.g-log.wrong{background:rgba(255,107,157,.07);border:1px solid rgba(255,107,157,.15);color:rgba(255,107,157,.7)}
-.g-log.sys{background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.15);color:var(--gold)}
-.g-name{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;opacity:.7;margin-right:4px}
-
-/* ══ MY CHARACTER PANEL (always visible during game) ══ */
-.my-char-panel{width:100%;max-width:720px;background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.18);
-  border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:14px}
-.my-char-label{font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:rgba(0,212,255,.6);margin-bottom:4px}
-.my-char-name{font-size:14px;font-weight:700;color:#fff}
-.my-char-anime{font-size:11px;color:var(--muted);margin-top:2px}
-.my-char-img{width:54px;height:54px;border-radius:10px;object-fit:cover;flex-shrink:0;border:2px solid rgba(0,212,255,.4)}
-.my-char-nopic{width:54px;height:54px;border-radius:10px;background:rgba(0,212,255,.1);display:grid;place-items:center;font-size:24px;flex-shrink:0}
-
-/* ══ NOTEPAD ══ */
-.notepad-panel{width:100%;max-width:720px;background:rgba(255,215,0,.03);border:1px solid rgba(255,215,0,.12);
-  border-radius:16px;padding:14px 18px;display:flex;flex-direction:column;gap:8px}
-.notepad-label{font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:rgba(255,215,0,.45)}
-.notepad-textarea{width:100%;min-height:72px;padding:10px 12px;background:rgba(255,215,0,.04);
-  border:1px solid rgba(255,215,0,.12);border-radius:10px;color:var(--text);
-  font-family:'Noto Sans Thai',sans-serif;font-size:13px;resize:vertical;outline:none;transition:border .2s;line-height:1.6}
-.notepad-textarea:focus{border-color:rgba(255,215,0,.35);background:rgba(255,215,0,.07)}
-.notepad-textarea::placeholder{color:rgba(255,220,150,.2)}
-
-/* ══ OPPONENT REVEAL (subject owner sees opponent's answer card) ══ */
-.opp-reveal-box{padding:16px 20px;background:rgba(255,159,67,.07);border:2px solid rgba(255,159,67,.3);
-  border-radius:18px;text-align:center;display:none;flex-direction:column;gap:8px;align-items:center}
-.opp-reveal-box.show{display:flex;animation:riseUp .4s ease}
-.opp-reveal-lbl{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:rgba(255,159,67,.8)}
-.opp-reveal-img{width:80px;height:80px;border-radius:12px;object-fit:cover;border:2px solid rgba(255,215,0,.5);box-shadow:0 0 20px rgba(255,215,0,.25)}
-.opp-reveal-name{font-family:'Cinzel Decorative',cursive;font-size:clamp(15px,2.5vw,20px);
-  background:linear-gradient(135deg,#fff,var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.opp-reveal-anime{font-size:11px;color:var(--muted)}
-
-/* ══ ALL ANSWERS PANEL (shown after reveal instead of win overlay) ══ */
-.all-answers-panel{width:100%;max-width:720px;background:rgba(255,215,0,.04);border:2px solid rgba(255,215,0,.25);
-  border-radius:20px;padding:20px;display:none;flex-direction:column;gap:14px;align-items:center}
-.all-answers-panel.show{display:flex;animation:riseUp .4s ease}
-.all-answers-title{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--gold)}
-.all-ans-grid{display:flex;gap:12px;width:100%;flex-wrap:wrap;justify-content:center}
-.all-ans-card{flex:1;min-width:200px;max-width:320px;display:flex;align-items:center;gap:12px;
-  padding:14px 16px;background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);border-radius:14px}
-.all-ans-img{width:60px;height:60px;border-radius:10px;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,215,0,.45)}
-.all-ans-nopic{width:60px;height:60px;border-radius:10px;background:rgba(255,215,0,.1);display:grid;place-items:center;font-size:26px;flex-shrink:0}
-.all-ans-by{font-size:10px;color:var(--muted);letter-spacing:.1em;margin-bottom:4px}
-.all-ans-val{font-size:15px;font-weight:700;color:#fff}
-.all-ans-anime{font-size:11px;color:var(--muted);margin-top:2px}
-.next-round-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%}
-.next-round-btn{padding:13px 32px;background:linear-gradient(135deg,var(--gold),var(--orange));
-  border:none;border-radius:50px;color:#000;font-family:'Noto Sans Thai',sans-serif;
-  font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 6px 24px rgba(255,215,0,.35)}
-.next-round-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(255,215,0,.5)}
-.next-round-btn:disabled{opacity:.4;cursor:default;transform:none}
-.next-round-btn.secondary{background:transparent;border:1px solid var(--border);color:var(--muted);box-shadow:none}
-.next-round-btn.secondary:hover{border-color:rgba(255,215,0,.4);color:var(--text)}
-
-/* WIN overlay */
-#winOverlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(4,2,14,.95);
-  backdrop-filter:blur(12px);flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:24px;gap:14px;overflow-y:auto}
-#winOverlay.show{display:flex;animation:popIn .4s ease}
-.win-icon{font-size:80px;animation:iconPop .6s ease}
-@keyframes iconPop{0%{transform:scale(0)rotate(-30deg)}70%{transform:scale(1.2)rotate(5deg)}100%{transform:scale(1)}}
-.win-big{font-family:'Cinzel Decorative',cursive;font-size:clamp(38px,8vw,62px);font-weight:900;line-height:1;
-  background:linear-gradient(140deg,#fff,#ffe066,var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  filter:drop-shadow(0 0 38px rgba(255,215,0,.5))}
-.win-score-grid{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
-.wps{padding:14px 24px;border-radius:16px;border:1px solid var(--border);min-width:130px}
-.wps-name{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
-.wps-val{font-family:'Orbitron',monospace;font-size:28px;font-weight:900}
-.wps-p1 .wps-val{color:var(--p1)}.wps-p2 .wps-val{color:var(--p2)}
-.win-answers{display:flex;flex-direction:column;gap:10px;width:100%;max-width:380px}
-.win-ans{display:flex;align-items:center;gap:12px;padding:12px 16px;
-  background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);border-radius:12px;text-align:left}
-.win-ans-img{width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,215,0,.4)}
-.win-ans-nopic{width:48px;height:48px;border-radius:8px;background:rgba(255,215,0,.1);display:grid;place-items:center;font-size:22px;flex-shrink:0}
-.win-ans-info{flex:1;min-width:0}
-.win-ans-by{font-size:10px;color:var(--muted);letter-spacing:.1em;margin-bottom:3px}
-.win-ans-val{font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.win-ans-anime{font-size:11px;color:var(--muted)}
-.win-sub{font-size:14px;color:var(--muted);max-width:380px;line-height:1.8}
-.win-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:4px}
-.w-btn{padding:13px 30px;border-radius:50px;font-family:'Noto Sans Thai',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
-.w-btn.primary{background:linear-gradient(135deg,var(--gold),var(--orange));border:none;color:#000;box-shadow:0 6px 24px rgba(255,215,0,.4)}
-.w-btn.primary:hover{transform:translateY(-2px)}
-.w-btn.secondary{background:transparent;border:1px solid var(--border);color:var(--muted)}
-.w-btn.secondary:hover{border-color:rgba(255,215,0,.4);color:var(--text)}
-.cf{position:fixed;top:-16px;z-index:210;pointer-events:none;animation:cfFall linear forwards}
-@keyframes cfFall{0%{opacity:1;transform:translateY(0)rotate(0)}100%{opacity:0;transform:translateY(110vh)rotate(720deg)}}
-
-@media(max-width:520px){nav{padding:14px 16px}.mode-cards{grid-template-columns:1fr}.action-row{gap:6px}.act-btn{padding:9px 14px;font-size:12px}}
+@media(max-width:480px){
+  nav{padding:12px 16px;}
+  .ans-name{font-size:17px;}
+  .ans-img,.ans-nopic{width:64px;height:64px;}
+}
 </style>
 </head>
 <body>
 
-<div id="loadingOverlay">
+<div id="loadingOverlay" style="display:none!important">
   <div class="spin"></div>
-  <div class="loading-txt">CONNECTING...</div>
+  <div class="load-txt">กำลังเชื่อมต่อ…</div>
 </div>
 
-<div class="orb" style="width:500px;height:500px;background:rgba(255,215,0,.06);top:-180px;right:-120px;animation-duration:16s;"></div>
-<div class="orb" style="width:400px;height:400px;background:rgba(255,159,67,.07);bottom:-100px;left:-100px;animation-duration:13s;animation-delay:5s;"></div>
 <canvas id="stars"></canvas>
 
-<!-- Hint request popup — shown to subject owner when opponent asks for hint -->
-<div id="hintRequestModal">
-  <div class="hrm-box">
-    <div class="hrm-icon">💡</div>
-    <div class="hrm-title">ขอ Hint!</div>
-    <div class="hrm-sub" id="hrmSub">ฝ่ายตรงข้ามขอ hint สำหรับโจทย์ของคุณ<br>กรุณาพิมพ์ hint ที่ต้องการให้</div>
-    <input class="hrm-input" id="hrmInput" type="text" maxlength="120" placeholder="พิมพ์ hint ที่นี่..." autocomplete="off"/>
-    <button class="hrm-btn" onclick="sendHint()">📨 ส่ง Hint</button>
-  </div>
-</div>
-
-<!-- WIN overlay — stays until rematch clicked -->
-<div id="winOverlay">
-  <div class="win-icon" id="winIcon">🏆</div>
-  <div class="win-big" id="winBig">ชนะ!</div>
-  <div class="win-score-grid" id="winScoreGrid"></div>
-  <div class="win-answers" id="winAnswers"></div>
-  <div class="win-sub" id="winSub"></div>
-  <div class="win-actions">
-    <button class="w-btn primary" onclick="rematch()">🔄 เล่นใหม่</button>
-    <button class="w-btn secondary" onclick="location.href='index.html'">← GameHub</button>
-  </div>
-</div>
-
-<div class="wrapper">
+<div class="wrap">
   <nav>
-    <a class="nav-logo" href="index.html">
-      <div class="logo-cube">🎭</div>
-      <span class="logo-label">GAME HUB</span>
+    <a class="nav-logo" href="index.html" onclick="event.preventDefault();warpBack()">
+      <div class="logo-mark">🎭</div>
+      <span class="logo-txt">GAME HUB</span>
     </a>
-    <div class="nav-right">
-      <span class="nav-pill">AnimeGuess</span>
-      <a class="back-btn" href="index.html">
-        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>กลับ
-      </a>
-    </div>
+    <a class="back-link" href="index.html" onclick="event.preventDefault();warpBack()">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>กลับ
+    </a>
   </nav>
 
-  <!-- ════ LOBBY ════ -->
+  <!-- ═══════ LOBBY ═══════ -->
   <div class="screen active" id="lobby">
-    <div class="lobby-inner">
-      <span class="lobby-eyebrow">🎭 ทายชื่ออนิเมะ / ตัวละคร</span>
+    <div class="lobby-hero">
+      <div class="lobby-eyebrow">✦ ทายชื่ออนิเมะ &amp; ตัวละคร ✦</div>
       <div class="lobby-title">AnimeGuess</div>
-      <p class="lobby-sub">ผลัดกันตั้งโจทย์คนละตัว — ทายให้ถูกรับคะแนน<br>
-        มีระบบ <strong style="color:var(--gold)">Hint สด</strong> — เจ้าของโจทย์พิมพ์ hint ให้เองทุกครั้ง!</p>
+      <p class="lobby-sub">ตั้งโจทย์คนละ 1 — แล้วกดเฉลยเพื่อดูคำตอบ</p>
+    </div>
 
-      <div class="mode-section">
-        <div class="mode-label">เลือกโหมด</div>
-        <div class="mode-cards">
-          <div class="mode-card" id="mc-solo" onclick="setMode('solo')">
-            <div class="mode-icon">🎮</div>
-            <div class="mode-name">SOLO</div>
-            <div class="mode-desc">Coming soon...</div>
+    <div class="card">
+      <div class="card-label">ห้องเกม</div>
+      <div class="tab-row">
+        <button class="tab active" id="tabCreate" onclick="switchTab('create')">🏠 สร้างห้อง</button>
+        <button class="tab"        id="tabJoin"   onclick="switchTab('join')">🚪 เข้าห้อง</button>
+      </div>
+
+      <div id="panelCreate" style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn-gold" onclick="createRoom()">✨ สร้างห้องใหม่</button>
+        <div id="codeDisplay" style="display:none;display:flex;flex-direction:column;gap:10px;">
+          <div class="code-display">
+            <div class="code-lbl">รหัสห้อง</div>
+            <div class="code-val" id="codeVal">——</div>
+            <div class="code-hint">📋 แชร์รหัสนี้ให้เพื่อน</div>
           </div>
-          <div class="mode-card active" id="mc-pvp" onclick="setMode('pvp')">
-            <div class="mode-icon">⚔️</div>
-            <div class="mode-name">2 ผู้เล่น</div>
-            <div class="mode-desc">Online · Firebase sync</div>
+          <div class="waiting-row">
+            <div class="spin" style="width:22px;height:22px;border-width:2px;"></div>
+            <span>รอเพื่อนเข้าร่วม…</span>
           </div>
         </div>
       </div>
 
-      <div class="room-panel" id="roomPanel">
-        <div class="room-panel-title">ห้องเกม</div>
-        <div style="display:flex;gap:8px;width:100%">
-          <button class="room-tab active" id="tabCreate" onclick="switchTab('create')">🏠 สร้างห้อง</button>
-          <button class="room-tab" id="tabJoin" onclick="switchTab('join')">🚪 เข้าห้อง</button>
-        </div>
-
-        <!-- CREATE panel -->
-        <div id="panelCreate" style="width:100%;display:flex;flex-direction:column;gap:10px;align-items:center">
-          <input type="hidden" id="myNameCreate"/>
-
-          <!-- Question limit -->
-          <div class="qlimit-row">
-            <span class="qlimit-label">❓ คำถามต่อรอบ</span>
-            <div class="qlimit-btns">
-              <button class="qlimit-btn active" data-q="3"  onclick="setQL(3)">3</button>
-              <button class="qlimit-btn"        data-q="5"  onclick="setQL(5)">5</button>
-              <button class="qlimit-btn"        data-q="10" onclick="setQL(10)">10</button>
-              <button class="qlimit-btn"        data-q="0"  onclick="setQL(0)">∞</button>
-            </div>
-          </div>
-
-          <button class="room-btn create" style="width:100%;padding:14px" onclick="createRoom()">✨ สร้างห้องใหม่</button>
-          <div id="roomCodeDisplay" style="display:none;width:100%">
-            <div class="room-code-display">
-              <div class="room-code-label">รหัสห้อง</div>
-              <div class="room-code-val" id="roomCodeVal">——</div>
-              <div class="room-code-hint">📋 แชร์รหัสนี้ให้เพื่อน</div>
-            </div>
-            <div class="waiting-box" id="waitingBox" style="display:none;margin-top:10px">
-              <div class="spin" style="width:28px;height:28px;border-width:2px"></div>
-              <div style="font-size:12px;color:var(--muted)">รอผู้เล่น 2<span class="dot-anim"><span>.</span><span>.</span><span>.</span></span></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- JOIN panel -->
-        <div id="panelJoin" style="width:100%;display:none;flex-direction:column;gap:10px;align-items:center">
-          <input type="hidden" id="myNameJoin"/>
-          <div style="font-size:12px;color:var(--muted);text-align:center">ใส่รหัสห้องที่เพื่อนแชร์ให้</div>
-          <div style="display:flex;gap:8px;width:100%">
-            <input class="room-input" id="joinCode" maxlength="6" placeholder="รหัส 6 ตัว"
-              style="flex:1;font-size:18px;letter-spacing:.2em"
-              oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"/>
-            <button class="room-btn join" onclick="joinRoom()">เข้าห้อง</button>
-          </div>
-          <div id="joinMsg" style="font-size:12px;color:var(--muted);text-align:center;display:none"></div>
-        </div>
-      </div>
-
-      <div id="soloSection" style="display:none">
-        <button class="setup-btn" onclick="alert('Coming soon 🎭')">เริ่มเล่น SOLO</button>
+      <div id="panelJoin" style="display:none;flex-direction:column;gap:10px;">
+        <input class="inp mono" id="joinCode" maxlength="6" placeholder="XXXXXX"
+          oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"/>
+        <button class="btn-blue" onclick="joinRoom()">เข้าห้อง →</button>
+        <div class="msg" id="joinMsg"></div>
       </div>
     </div>
   </div>
 
-  <!-- ════ SETUP ════ -->
+  <!-- ═══════ SETUP ═══════ -->
   <div class="screen" id="setup">
-    <div class="setup-inner">
-      <div class="setup-title" id="setupTitle">🎯 ตั้งโจทย์ของคุณ</div>
-      <p id="setupSub" style="font-size:13px;color:var(--muted);opacity:0;animation:riseUp .7s .1s forwards;line-height:1.7">
-        ตั้งชื่ออนิเมะหรือตัวละครให้คู่ต่อสู้ทาย<br>
-        <span style="color:var(--gold);font-size:12px">💡 Hint จะพิมพ์สดตอนถูกขอ ไม่ต้องตั้งล่วงหน้า</span>
-      </p>
+    <div class="setup-title" id="setupTitle">🎯 ตั้งโจทย์ของคุณ</div>
+    <p class="setup-sub" id="setupSub">ค้นหาชื่ออนิเมะหรือตัวละครที่อยากให้ทาย</p>
 
-      <div class="setup-card">
-        <div class="setup-section-label">🎯 โจทย์ของคุณ (ค้นหาชื่ออนิเมะ / ตัวละคร)</div>
-        <div class="ac-wrap">
-          <input class="ac-input" id="answerInput" type="text" maxlength="80"
-            placeholder="พิมพ์ชื่ออนิเมะหรือตัวละคร..." autocomplete="off" spellcheck="false"/>
-          <div class="ac-list" id="acList"></div>
-        </div>
-        <div class="selected-preview" id="selectedPreview">
-          <div id="selImgWrap"></div>
-          <div>
-            <div class="sel-name" id="selName">—</div>
-            <div class="sel-anime" id="selAnime"></div>
-          </div>
-        </div>
-        <div class="setup-ready-badge" id="setupReadyBadge">✅ ฝ่ายตรงข้ามพร้อมแล้ว! กำลังรอคุณ...</div>
-        <div class="setup-waiting" id="setupWaiting">
-          <div class="spin" style="width:24px;height:24px;border-width:2px;margin:0 auto 8px"></div>
-          รอฝ่ายตรงข้ามตั้งโจทย์<span class="dot-anim"><span>.</span><span>.</span><span>.</span></span>
+    <div class="card">
+      <div class="card-label">🔍 โจทย์ของคุณ</div>
+      <div class="ac-wrap">
+        <input class="inp" id="answerInput" type="text" maxlength="80"
+          placeholder="พิมพ์ชื่ออนิเมะหรือตัวละคร…" autocomplete="off" spellcheck="false"/>
+        <div class="ac-list" id="acList"></div>
+      </div>
+      <div class="sel-prev" id="selPrev">
+        <div id="selImgWrap"></div>
+        <div>
+          <div class="sel-name" id="selName">—</div>
+          <div class="sel-anime" id="selAnime"></div>
         </div>
       </div>
-
-      <button class="setup-btn" id="setupBtn" onclick="submitSetup()">🌟 ยืนยันโจทย์</button>
+      <div class="ready-badge" id="readyBadge">✅ เพื่อนพร้อมแล้ว รอคุณอยู่…</div>
+      <div class="setup-waiting" id="setupWaiting">
+        <div style="display:flex;align-items:center;gap:8px;justify-content:center;">
+          <div class="spin" style="width:20px;height:20px;border-width:2px;flex-shrink:0;"></div>
+          รอเพื่อนตั้งโจทย์…
+        </div>
+      </div>
+      <button class="btn-gold" id="setupBtn" onclick="submitSetup()">🌟 ยืนยันโจทย์</button>
     </div>
   </div>
 
-  <!-- ════ GAME ════ -->
+
+  <!-- ═══════ GAME ═══════ -->
   <div class="screen" id="game">
-    <div class="game-inner">
-
-      <div class="turn-bar">
-        <div class="player-bar p1-bar" id="p1Bar">
-          <div class="p-avatar">🔵</div>
-          <div class="p-info">
-            <div class="p-name" id="p1Name">P1</div>
-            <div class="p-score" id="p1Score">0</div>
-          </div>
-        </div>
-        <div class="turn-center">
-          <div class="vs-txt">VS</div>
-          <div class="turn-lbl" id="turnLbl">R1</div>
-        </div>
-        <div class="player-bar p2-bar" id="p2Bar">
-          <div class="p-avatar">🟠</div>
-          <div class="p-info">
-            <div class="p-name" id="p2Name">P2</div>
-            <div class="p-score" id="p2Score">0</div>
-          </div>
-        </div>
+    <div class="players-bar">
+      <div class="player-chip p1c">
+        <div class="p-av">🔵</div>
+        <div><div class="p-name-txt" id="p1Name">P1</div></div>
       </div>
-
-      <!-- My character — always visible -->
-      <div class="my-char-panel" id="myCharPanel">
-        <div id="myCharImgWrap"><div class="my-char-nopic">🎭</div></div>
-        <div>
-          <div class="my-char-label">⚔️ โจทย์ของคุณ</div>
-          <div class="my-char-name" id="myCharName">—</div>
-          <div class="my-char-anime" id="myCharAnime"></div>
-        </div>
+      <span class="vs-mid">VS</span>
+      <div class="player-chip p2c">
+        <div class="p-av">🟠</div>
+        <div><div class="p-name-txt" id="p2Name">P2</div></div>
       </div>
+    </div>
 
-      <div class="guess-area">
-        <div class="phase-lbl" id="phaseLbl">🎯</div>
-        <div class="guess-q">
-          ทายชื่อ <span class="qs">อนิเมะ/ตัวละคร</span> ที่<br>
-          <span class="qs" id="subOwnerName">—</span> ตั้งไว้
-        </div>
-
-        <div class="hint-panel">
-          <div class="hint-panel-lbl">💡 Hints</div>
-          <div class="hint-items" id="hintItems">
-            <div style="font-size:12px;color:rgba(255,255,255,.2);padding:4px 0">— ยังไม่มี hint —</div>
-          </div>
-          <div class="hint-waiting" id="hintWaiting">
-            <div class="spin" style="width:16px;height:16px;border-width:2px;flex-shrink:0"></div>
-            รอเจ้าของโจทย์พิมพ์ hint...
-          </div>
-        </div>
-
-        <div class="reveal-box" id="revealBox">
-          <div class="reveal-lbl">🔓 เฉลย</div>
-          <div id="revealImgWrap"></div>
-          <div class="reveal-answer" id="revealAns">—</div>
-          <div class="reveal-anime" id="revealAnime"></div>
-        </div>
-
-        <!-- Shown to subject owner when guesser reveals -->
-        <div class="opp-reveal-box" id="oppRevealBox">
-          <div class="opp-reveal-lbl">🔓 ฝ่ายตรงข้ามเฉลยโจทย์ของคุณ</div>
-          <div id="oppRevealImgWrap"></div>
-          <div class="opp-reveal-name" id="oppRevealName">—</div>
-          <div class="opp-reveal-anime" id="oppRevealAnime"></div>
-        </div>
-
-        <div class="qs-left" id="qsLeft"></div>
-
-        <div class="guess-input-row">
-          <input class="guess-input" id="guessInput" type="text" placeholder="พิมพ์คำตอบที่นี่..." autocomplete="off"/>
-          <button class="guess-btn" id="guessBtn" onclick="submitGuess()">ตอบ</button>
-        </div>
-
-        <div class="action-row">
-          <button class="act-btn act-hint" id="hintBtn" onclick="reqHint()">💡 ขอ Hint</button>
-          <button class="act-btn act-reveal" id="revealBtn" onclick="doReveal()">🔓 เฉลย</button>
-          <button class="act-btn act-pass"   id="passBtn"   onclick="doPass()">⏭️ ผ่าน</button>
-        </div>
-
-        <div class="guess-history" id="guessHistory"></div>
+    <div class="my-subject">
+      <div id="mySubImgWrap"><div class="ms-nopic">🎭</div></div>
+      <div>
+        <div class="ms-lbl">⚔️ โจทย์ของคุณ</div>
+        <div class="ms-name" id="mySubName">—</div>
+        <div class="ms-anime" id="mySubAnime"></div>
       </div>
+    </div>
 
-      <!-- Notepad -->
-      <div class="notepad-panel">
-        <div class="notepad-label">📝 โน้ตส่วนตัว</div>
-        <textarea class="notepad-textarea" id="notepadText" placeholder="จดข้อมูล hint หรือข้อมูลที่เป็นประโยชน์..."></textarea>
-      </div>
+    <button class="reveal-btn-big" id="revealBtn" onclick="doReveal()">
+      🔓 เฉลยโจทย์ของฉัน
+    </button>
+    <div class="reveal-note" id="revealNote">เฉลยโจทย์ที่คุณตั้งให้ฝั่งตรงข้ามเห็น</div>
+    <div id="waitingReveal" style="display:none;margin-top:12px;font-size:13px;color:var(--muted);letter-spacing:.06em;">
+      ⏳ รอฝั่งตรงข้ามเฉลย...
+    </div>
 
-      <!-- All Answers Panel — shown after reveal/done -->
-      <div class="all-answers-panel" id="allAnswersPanel">
-        <div class="all-answers-title">🎯 โจทย์ทั้งหมดในห้อง</div>
-        <div class="all-ans-grid" id="allAnsGrid"></div>
-        <div class="next-round-row" id="nextRoundRow"></div>
-      </div>
+    <!-- ตัวละครที่ฝั่งตรงข้ามเฉลยแล้ว แสดงทันที -->
+    <div id="oppRevealCard" style="display:none;width:100%;max-width:480px;margin-top:18px;"></div>
 
+    <!-- โน้ต -->
+    <div style="width:100%;max-width:580px;margin-top:8px;">
+      <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">📝 โน้ต</div>
+      <textarea id="noteInput"
+        placeholder="จดอะไรก็ได้..."
+        style="width:100%;min-height:100px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+               border-radius:14px;padding:14px 16px;color:var(--text);font-family:'Sarabun',sans-serif;
+               font-size:14px;line-height:1.7;resize:vertical;outline:none;caret-color:var(--gold);
+               transition:border-color .2s;"
+        onfocus="this.style.borderColor='rgba(245,200,66,.35)'"
+        onblur="this.style.borderColor='rgba(255,255,255,.08)'"></textarea>
+    </div>
+  </div>
+
+  <!-- ═══════ ANSWERS ═══════ -->
+  <div class="screen" id="answers">
+    <div class="answers-title">🔓 เฉลยโจทย์</div>
+    <div class="answers-grid" id="answersGrid"></div>
+    <div class="again-row">
+      <button class="btn-gold" id="playAgainBtn" style="max-width:220px;border-radius:50px;display:none;" onclick="playAgain()">🔄 เล่นใหม่</button>
+      <button class="btn-outline" onclick="warpBack()">← GameHub</button>
     </div>
   </div>
 
 </div>
 
-<!-- FIREBASE -->
+<!-- ═══════ FIREBASE ═══════ -->
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import{getAuth,signInAnonymously,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import{getDatabase,ref,set,get,update,onValue,remove}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
-const C={apiKey:"AIzaSyAphadHf8YqOO3a-foaO4I9BaNcEzUS2ys",authDomain:"gamehub-48669.firebaseapp.com",projectId:"gamehub-48669",storageBucket:"gamehub-48669.firebasestorage.app",messagingSenderId:"456832450683",appId:"1:456832450683:web:ad289927a9a57a6439a2de",databaseURL:"https://gamehub-48669-default-rtdb.asia-southeast1.firebasedatabase.app"};
-const app=initializeApp(C,'ag2');const auth=getAuth(app);const db=getDatabase(app);let uid=null;
+import{getDatabase,ref,set,get,update,onValue}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const C={
+  apiKey:"AIzaSyAphadHf8YqOO3a-foaO4I9BaNcEzUS2ys",
+  authDomain:"gamehub-48669.firebaseapp.com",
+  projectId:"gamehub-48669",
+  storageBucket:"gamehub-48669.firebasestorage.app",
+  messagingSenderId:"456832450683",
+  appId:"1:456832450683:web:ad289927a9a57a6439a2de",
+  databaseURL:"https://gamehub-48669-default-rtdb.asia-southeast1.firebasedatabase.app"
+};
+const app=initializeApp(C,'ag3');
+const auth=getAuth(app);
+const db=getDatabase(app);
+let uid=null;
+
 signInAnonymously(auth).catch(e=>console.error(e));
-onAuthStateChanged(auth,u=>{if(u){uid=u.uid;document.getElementById('loadingOverlay').style.display='none';window._ag?.();}});
-const r=code=>ref(db,`ag2/${code}`);
+onAuthStateChanged(auth,u=>{
+  if(u){uid=u.uid;document.getElementById('loadingOverlay').style.display='none';window._ag?.();}
+});
+
+const r=code=>ref(db,`ag3/${code}`);
 window._fb={
   uid:()=>uid,
-  create:async(code,name,ql)=>{await set(r(code),{status:'waiting',createdAt:Date.now(),ql:ql||3,players:{p1:{uid,name}},setup:{},scores:{p1:0,p2:0},round:1,guesser:'p1',guesses:[],hints:{},hintReq:null,qCount:0});},
-  join:async(code,name)=>{const s=await get(r(code));if(!s.exists())throw new Error('ไม่พบห้อง '+code);if(s.val().players?.p2)throw new Error('ห้องเต็มแล้ว');await update(r(code),{'players/p2':{uid,name},status:'setup'});},
-  setup:async(code,role,ans,img,anime)=>{await update(r(code),{[`setup/${role}`]:{ans,img:img||'',anime:anime||'',ready:true}});},
+  create:async(code,name)=>{
+    await set(r(code),{status:'waiting',createdAt:Date.now(),players:{p1:{uid,name}},setup:{}});
+  },
+  join:async(code,name)=>{
+    const s=await get(r(code));
+    if(!s.exists())throw new Error('ไม่พบห้อง '+code);
+    if(s.val().players?.p2)throw new Error('ห้องเต็มแล้ว');
+    await update(r(code),{'players/p2':{uid,name},status:'setup'});
+  },
+  setup:async(code,role,ans,img,anime)=>{
+    await update(r(code),{[`setup/${role}`]:{ans,img:img||'',anime:anime||'',ready:true}});
+  },
+  reveal:async(code,role)=>update(r(code),{[`setup/${role}/revealed`]:true}),
+  reset:async(code)=>update(r(code),{status:'setup',setup:{},revealedAt:null}),
   listen:(code,cb)=>onValue(r(code),s=>{if(s.exists())cb(s.val());}),
-  update:async(code,d)=>{await update(r(code),d);},
-  del:async(code)=>{try{await remove(r(code));}catch(e){}},
+  update:async(code,d)=>update(r(code),d),
 };
 </script>
 
-<!-- GAME LOGIC -->
+<!-- ═══════ GAME LOGIC ═══════ -->
 <script>
 const NK='animegrid_player_name';
 let me=localStorage.getItem(NK)||'';
 if(!me)location.href='index.html';
 
-let mode='pvp',role=null,code=null,started=false,setupDone=false;
-let selChar=null;// {name,img,anime}
-let ql=3;// question limit
-let pendingHintIdx=null;
+let role=null,code=null,_listening=false;
 
-let S={names:['P1','P2'],scores:[0,0],round:1,guesser:'p1',setup:{},guesses:[],hints:{},hintReq:null,ql:3,qCount:0};
-
-const waitFb=()=>new Promise(r=>{const t=setInterval(()=>{if(window._fb){clearInterval(t);r();}},80);});
-
-window._ag=()=>{
-  document.getElementById('myNameCreate').value=me;
-  document.getElementById('myNameJoin').value=me;
-};
-
-/* Mode */
-function setMode(m){
-  mode=m;
-  document.querySelectorAll('.mode-card').forEach(c=>c.classList.remove('active'));
-  document.getElementById('mc-'+m).classList.add('active');
-  document.getElementById('roomPanel').style.display=m==='pvp'?'flex':'none';
-  document.getElementById('soloSection').style.display=m==='solo'?'block':'none';
-}
-setMode('pvp');
+const waitFb=()=>new Promise(res=>{const t=setInterval(()=>{if(window._fb){clearInterval(t);res();}},80);});
+window._ag=()=>{};
 
 function switchTab(t){
   ['create','join'].forEach(x=>{
-    document.getElementById('tab'+x[0].toUpperCase()+x.slice(1)).classList.toggle('active',x===t);
-    document.getElementById('panel'+x[0].toUpperCase()+x.slice(1)).style.display=x===t?'flex':'none';
+    const X=x[0].toUpperCase()+x.slice(1);
+    document.getElementById('tab'+X).classList.toggle('active',x===t);
+    document.getElementById('panel'+X).style.display=x===t?'flex':'none';
   });
 }
 
-function setQL(v){
-  ql=v;
-  document.querySelectorAll('.qlimit-btn').forEach(b=>b.classList.toggle('active',Number(b.dataset.q)===v));
+function genCode(){
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:6},()=>c[~~(Math.random()*c.length)]).join('');
 }
 
-function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';return Array.from({length:6},()=>c[~~(Math.random()*c.length)]).join('');}
-
-/* Create */
+/* ── CREATE ── */
 async function createRoom(){
   await waitFb();
-  code=genCode();role='p1';started=false;
-  await _fb.create(code,me,ql);
-  document.getElementById('roomCodeVal').textContent=code;
-  document.getElementById('roomCodeDisplay').style.display='block';
-  document.getElementById('waitingBox').style.display='flex';
-  _fb.listen(code,d=>{
-    if(d.status==='setup'&&d.players?.p2&&!started){started=true;document.getElementById('waitingBox').style.display='none';goSetup(d);}
-    if(d.status==='abandoned')abandoned();
-  });
+  code=genCode();role='p1';
+  await _fb.create(code,me);
+  document.getElementById('codeVal').textContent=code;
+  document.getElementById('codeDisplay').style.display='flex';
+  listenRoom();
 }
 
-/* Join */
+/* ── JOIN ── */
 async function joinRoom(){
   await waitFb();
   const c=document.getElementById('joinCode').value.trim().toUpperCase();
-  const m=document.getElementById('joinMsg');
-  if(c.length<4){m.style.display='block';m.style.color='var(--gold)';m.textContent='⚠️ ใส่รหัสอย่างน้อย 4 ตัว';return;}
+  const msg=document.getElementById('joinMsg');
+  if(c.length<4){showMsg(msg,'⚠️ ใส่รหัสอย่างน้อย 4 ตัว','var(--gold)');return;}
   try{
     await _fb.join(c,me);
-    code=c;role='p2';started=false;
-    m.style.display='block';m.style.color='var(--muted)';m.textContent='✅ เข้าห้องสำเร็จ!';
-    _fb.listen(code,d=>{
-      if(d.status==='setup'&&!started){started=true;goSetup(d);}
-      if(d.status==='playing'&&!setupDone)startGame(d);
-      if(d.status==='done')handleDone(d);
-      if(d.status==='abandoned')abandoned();
-    });
-  }catch(e){m.style.display='block';m.style.color='var(--gold)';m.textContent='⚠️ '+e.message;}
+    code=c;role='p2';
+    showMsg(msg,'✅ เข้าห้องสำเร็จ!','var(--muted)');
+    listenRoom();
+  }catch(e){showMsg(msg,'⚠️ '+e.message,'var(--gold)');}
 }
 
-/* Setup screen */
+function showMsg(el,txt,color){
+  el.style.display='block';el.style.color=color;el.textContent=txt;
+}
+
+/* ── LISTEN ── */
+function listenRoom(){
+  if(_listening)return;_listening=true;
+  _fb.listen(code,d=>{
+    if(!d)return;
+    const st=d.status;
+    const opp=role==='p1'?'p2':'p1';
+    const cur=document.querySelector('.screen.active')?.id;
+
+    if((st==='setup'||st==='waiting')&&d.players?.p1&&d.players?.p2){
+      if(cur==='lobby')goSetup(d);
+      if(d.setup?.[opp]?.ready)document.getElementById('readyBadge').style.display='block';
+      if(d.setup?.p1?.ready&&d.setup?.p2?.ready&&cur!=='game'&&cur!=='answers')goGame(d);
+    }
+    // Go to answers only when BOTH players have revealed
+    const p1Revealed=d.setup?.p1?.revealed;
+    const p2Revealed=d.setup?.p2?.revealed;
+    const anyRevealed=p1Revealed||p2Revealed;
+    const bothRevealed=p1Revealed&&p2Revealed;
+    // If I revealed but opponent hasn't — show waiting state
+    if(anyRevealed&&!bothRevealed&&cur==='game')updateWaiting(d);
+    if(bothRevealed&&cur!=='answers')showAnswers(d);
+    if(bothRevealed&&cur==='answers')updateAnswers(d);
+    // Play again reset — p1 cleared setup
+    if(st==='setup'&&d.players?.p1&&d.players?.p2&&!d.setup?.p1&&cur!=='setup'&&cur!=='lobby')goSetupFresh(d);
+  });
+}
+
+/* ── SETUP ── */
 function goSetup(d){
-  const p1=d.players?.p1?.name||'P1',p2=d.players?.p2?.name||'P2';
-  S.names=[p1,p2];S.ql=d.ql||3;
-  const myName=role==='p1'?p1:p2,opp=role==='p1'?p2:p1;
+  const p1n=d.players?.p1?.name||'P1', p2n=d.players?.p2?.name||'P2';
+  const myName=role==='p1'?p1n:p2n, oppName=role==='p1'?p2n:p1n;
   document.getElementById('setupTitle').textContent='🎯 '+myName+' ตั้งโจทย์';
-  document.getElementById('setupSub').innerHTML=`ตั้งชื่ออนิเมะหรือตัวละครให้ <strong style="color:var(--gold)">${esc(opp)}</strong> ทาย<br><span style="color:var(--gold);font-size:12px">💡 Hint จะพิมพ์สดตอนถูกขอ ไม่ต้องตั้งล่วงหน้า</span>`;
+  document.getElementById('setupSub').innerHTML=`ตั้งชื่ออนิเมะ/ตัวละครให้ <strong style="color:var(--gold)">${esc(oppName)}</strong> ดู`;
+  const opp=role==='p1'?'p2':'p1';
+  document.getElementById('readyBadge').style.display=d.setup?.[opp]?.ready?'block':'none';
   showScreen('setup');
-  _fb.listen(code,d2=>{
-    const opp2=role==='p1'?'p2':'p1';
-    if(d2.setup?.[opp2]?.ready)document.getElementById('setupReadyBadge').style.display='block';
-    if(d2.status==='playing'&&!setupDone){setupDone=true;startGame(d2);}
-  });
 }
 
-/* Submit setup */
-async function submitSetup(){
-  const ans=document.getElementById('answerInput').value.trim();
-  if(!ans){document.getElementById('answerInput').style.borderColor='var(--gold)';return;}
-  const img=selChar?.img||'',anime=selChar?.anime||'';
-  document.getElementById('setupBtn').disabled=true;
-  document.getElementById('setupBtn').textContent='✅ บันทึกแล้ว รอเพื่อน...';
-  document.getElementById('setupWaiting').style.display='block';
-  await _fb.setup(code,role,ans,img,anime);
-  // Poll until both ready → start
-  const iv=setInterval(async()=>{
-    const snap=await new Promise(res=>_fb.listen(code,x=>res(x)));
-    if(snap.setup?.p1?.ready&&snap.setup?.p2?.ready){
-      clearInterval(iv);
-      await _fb.update(code,{status:'playing',round:1,guesser:'p1',guesses:[],hints:{},hintReq:null,qCount:0});
-    }
-  },800);
-}
-
-/* Start game */
-function startGame(d){
-  setupDone=true;
-  syncState(d);
-  renderGame();
-  showScreen('game');
-  _fb.listen(code,d2=>{
-    if(!d2)return;
-    syncState(d2);
-    if(d2.status==='done'){handleDone(d2);return;}
-    if(d2.allRevealed&&!document.getElementById('allAnswersPanel').classList.contains('show')){
-      showAllAnswers(d2,false);
-    }
-    if(!d2.allRevealed){
-      // New round started — hide answers panel
-      document.getElementById('allAnswersPanel').classList.remove('show');
-    }
-    renderGame();
-    checkHintModal(d2);
-  });
-}
-
-function syncState(d){
-  S.names=[d.players?.p1?.name||'P1',d.players?.p2?.name||'P2'];
-  S.scores=[d.scores?.p1||0,d.scores?.p2||0];
-  S.round=d.round||1;S.guesser=d.guesser||'p1';
-  S.setup=d.setup||S.setup;
-  S.guesses=d.guesses||[];
-  S.hints=d.hints||{};// hints[round][idx] = text
-  S.hintReq=d.hintReq||null;
-  S.ql=d.ql||3;S.qCount=d.qCount||0;
-}
-
-/* Render game */
-function renderGame(){
-  const{names,scores,round,guesser,guesses,hints,hintReq,ql,qCount}=S;
-  const gi=guesser==='p1'?0:1;
-  const sub=guesser==='p1'?'p2':'p1';// subject owner
-  const isMe=role===guesser;
-  const isSubOwner=role===sub;
-
-  document.getElementById('p1Name').textContent=names[0];
-  document.getElementById('p2Name').textContent=names[1];
-  document.getElementById('p1Score').textContent=scores[0];
-  document.getElementById('p2Score').textContent=scores[1];
-  document.getElementById('p1Bar').classList.toggle('active-turn',guesser==='p1');
-  document.getElementById('p2Bar').classList.toggle('active-turn',guesser==='p2');
-  document.getElementById('turnLbl').textContent='R'+round;
-  document.getElementById('phaseLbl').textContent=`🎯 รอบ ${round} — ${names[gi]} ทาย โจทย์ ${names[sub==='p1'?0:1]}`;
-  document.getElementById('subOwnerName').textContent=names[sub==='p1'?0:1];
-
-  // My character — always visible
-  const mySetup=S.setup[role]||{};
-  document.getElementById('myCharName').textContent=mySetup.ans||'—';
-  document.getElementById('myCharAnime').textContent=mySetup.anime?'จาก: '+mySetup.anime:'';
-  document.getElementById('myCharImgWrap').innerHTML=mySetup.img
-    ?`<img class="my-char-img" src="${mySetup.img}" loading="lazy" onerror="this.outerHTML='<div class=my-char-nopic>🎭</div>'">`
-    :`<div class="my-char-nopic">🎭</div>`;
-
-  // Hint items for this round
-  const rHints=hints[round]||{};
-  const hintEl=document.getElementById('hintItems');
-  const hKeys=Object.keys(rHints).sort((a,b)=>a-b);
-  if(hKeys.length===0){
-    hintEl.innerHTML='<div style="font-size:12px;color:rgba(255,255,255,.2);padding:4px 0">— ยังไม่มี hint —</div>';
-  }else{
-    hintEl.innerHTML='';
-    hKeys.forEach(k=>{
-      const li=document.createElement('div');li.className='hint-item';
-      li.innerHTML=`<div class="hint-num">${Number(k)+1}</div><div class="hint-text">${esc(rHints[k])}</div>`;
-      hintEl.appendChild(li);
-    });
-  }
-
-  // Hint waiting indicator (guesser waiting for hint response)
-  const waiting=isMe&&hintReq&&hintReq.round===round&&!rHints[hintReq.idx];
-  document.getElementById('hintWaiting').classList.toggle('show',!!waiting);
-
-  // Reveal box — shown to guesser (persistent)
-  const sd=S.setup[sub]||{};
-  const revd=S.revealed===true||(S.revealedRound===round);
-  const rb=document.getElementById('revealBox');
-  if(revd&&isMe){
-    rb.classList.add('show');
-    document.getElementById('revealAns').textContent=sd.ans||'—';
-    document.getElementById('revealAnime').textContent=sd.anime?'จาก: '+sd.anime:'';
-    const iw=document.getElementById('revealImgWrap');
-    iw.innerHTML=sd.img?`<img class="reveal-img" src="${sd.img}" loading="lazy" onerror="this.style.display='none'">`:'';
-  }else{
-    rb.classList.remove('show');
-  }
-
-  // Opp reveal box — shown to subject owner when guesser reveals
-  const mysd=S.setup[role]||{};
-  const ob=document.getElementById('oppRevealBox');
-  if(revd&&isSubOwner){
-    ob.classList.add('show');
-    document.getElementById('oppRevealName').textContent=mysd.ans||'—';
-    document.getElementById('oppRevealAnime').textContent=mysd.anime?'จาก: '+mysd.anime:'';
-    document.getElementById('oppRevealImgWrap').innerHTML=mysd.img
-      ?`<img class="opp-reveal-img" src="${mysd.img}" loading="lazy" onerror="this.style.display='none'">`:'';
-  }else{
-    ob.classList.remove('show');
-  }
-
-  // Q left
-  const qlEl=document.getElementById('qsLeft');
-  if(ql>0){
-    const left=Math.max(0,ql-qCount);
-    qlEl.textContent=`❓ คำถามที่เหลือ: ${left}`;
-    qlEl.style.color=left<=1?'var(--sakura)':'var(--muted)';
-  }else{
-    qlEl.textContent='';
-  }
-
-  // Buttons
-  const noQ=ql>0&&qCount>=ql;
-  const canGuess=isMe&&!revd&&!waiting;
-  document.getElementById('guessInput').disabled=!canGuess||noQ;
-  document.getElementById('guessBtn').disabled=!canGuess||noQ;
-  document.getElementById('hintBtn').disabled=!isMe||revd||waiting;
-  document.getElementById('revealBtn').disabled=!isMe||revd;
-  document.getElementById('passBtn').disabled=!isMe||revd;
-  document.getElementById('guessInput').placeholder=noQ&&!revd?'หมดคำถาม — กด เฉลย หรือ ผ่าน':'พิมพ์คำตอบที่นี่...';
-
-  // Log
-  const hist=document.getElementById('guessHistory');
-  hist.innerHTML='';
-  guesses.forEach(g=>{
-    const el=document.createElement('div');el.className='g-log '+g.t;
-    el.innerHTML=`<span class="g-name">${esc(g.p)}</span>${esc(g.m)}`;
-    hist.appendChild(el);
-  });
-  hist.scrollTop=hist.scrollHeight;
-}
-
-/* Check if I need to answer a hint request */
-function checkHintModal(d){
-  const sub=d.guesser==='p1'?'p2':'p1';
-  if(role!==sub)return;// only subject owner sees this
-  const req=d.hintReq;
-  if(!req||req.round!==d.round)return;
-  const rHints=(d.hints||{})[d.round]||{};
-  if(rHints[req.idx]!==undefined){document.getElementById('hintRequestModal').classList.remove('open');return;}
-  const guesserName=d.players?.[d.guesser]?.name||'คู่ต่อสู้';
-  document.getElementById('hrmSub').innerHTML=`<strong style="color:var(--gold)">${esc(guesserName)}</strong> ขอ Hint #${req.idx+1} สำหรับโจทย์ของคุณ<br>กรุณาพิมพ์ hint`;
-  pendingHintIdx=req.idx;
-  document.getElementById('hrmInput').value='';
-  document.getElementById('hintRequestModal').classList.add('open');
-  setTimeout(()=>document.getElementById('hrmInput').focus(),80);
-}
-
-async function sendHint(){
-  const txt=document.getElementById('hrmInput').value.trim();
-  if(!txt){document.getElementById('hrmInput').style.borderColor='var(--gold)';return;}
-  document.getElementById('hintRequestModal').classList.remove('open');
-  const idx=pendingHintIdx;pendingHintIdx=null;
-  const guesses=[...S.guesses,{t:'sys',p:'',m:`💡 Hint #${idx+1}: ${txt}`}];
-  await _fb.update(code,{[`hints/${S.round}/${idx}`]:txt,hintReq:null,guesses});
-}
-document.getElementById('hrmInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendHint();});
-
-/* Submit guess */
-async function submitGuess(){
-  const val=document.getElementById('guessInput').value.trim();
-  if(!val)return;
-  document.getElementById('guessInput').value='';
-  const sub=S.guesser==='p1'?'p2':'p1';
-  const correct=(S.setup[sub]?.ans||'').toLowerCase().trim();
-  const v=val.toLowerCase().trim();
-  const ok=v===correct||correct.includes(v)||(v.length>3&&v.includes(correct));
-  const pName=S.names[role==='p1'?0:1]||me;
-  const guesses=[...S.guesses,{t:ok?'correct':'wrong',p:pName,m:ok?`✅ "${val}" — ถูกต้อง! 🎉`:`❌ "${val}"`}];
-  const newQ=S.qCount+1;
-  if(ok){
-    const sc={p1:S.scores[0],p2:S.scores[1]};
-    const hn=Object.keys((S.hints[S.round])||{}).length;
-    const pts=Math.max(1,3-hn);
-    sc[S.guesser]+=pts;
-    guesses.push({t:'sys',p:'',m:`🏆 +${pts} คะแนน`});
-    await advance({guesses,scores:sc,qCount:newQ});
-  }else{
-    const qOver=S.ql>0&&newQ>=S.ql;
-    if(qOver)guesses.push({t:'sys',p:'',m:`❌ หมดคำถาม ${S.ql} ข้อ`});
-    await _fb.update(code,{guesses,qCount:newQ});
-  }
-}
-
-/* Request hint */
-async function reqHint(){
-  const sub=S.guesser==='p1'?'p2':'p1';
-  const idx=Object.keys((S.hints[S.round])||{}).length;
-  const pending=S.hintReq&&S.hintReq.round===S.round&&!(S.hints[S.round]||{})[S.hintReq.idx];
-  if(pending)return;
-  await _fb.update(code,{hintReq:{idx,round:S.round,by:role}});
-}
-
-/* Reveal — immediately show all answers to everyone, no delay */
-async function doReveal(){
-  const guesses=[...S.guesses,{t:'sys',p:'',m:'🔓 เฉลย!'}];
-  const next=S.round+1;
-  if(next>2){
-    // Last round — game over
-    await _fb.update(code,{guesses,status:'done',allRevealed:true,revealedRound:S.round});
-  }else{
-    // More rounds left — mark revealed so both see answers, guesser picks "next round"
-    await _fb.update(code,{guesses,allRevealed:true,revealedRound:S.round});
-  }
-}
-
-/* Pass */
-async function doPass(){
-  const g=[...S.guesses,{t:'sys',p:S.names[role==='p1'?0:1],m:'⏭️ ผ่าน'}];
-  await advance({guesses:g});
-}
-
-async function advance(extra={}){
-  const next=S.round+1;
-  if(next>2){await _fb.update(code,{...extra,status:'done'});}
-  else{await _fb.update(code,{...extra,round:next,guesser:S.guesser==='p1'?'p2':'p1',hintReq:null,qCount:0,revealedRound:null,allRevealed:false});}
-}
-
-/* Show all answers inline in game screen */
-function showAllAnswers(d,isDone){
-  const panel=document.getElementById('allAnswersPanel');
-  if(panel.classList.contains('show'))return;
-  const setup=d.setup||S.setup||{};
-  const names=S.names;
-  const grid=document.getElementById('allAnsGrid');grid.innerHTML='';
-  ['p1','p2'].forEach((r2,i)=>{
-    const sd=setup[r2]||{};if(!sd.ans)return;
-    const imgEl=sd.img
-      ?`<img class="all-ans-img" src="${sd.img}" loading="lazy" onerror="this.outerHTML='<div class=all-ans-nopic>🎭</div>'">`
-      :`<div class="all-ans-nopic">🎭</div>`;
-    grid.innerHTML+=`<div class="all-ans-card">${imgEl}<div><div class="all-ans-by">โจทย์ของ ${esc(names[i])}</div><div class="all-ans-val">${esc(sd.ans)}</div>${sd.anime?`<div class="all-ans-anime">จาก: ${esc(sd.anime)}</div>`:''}</div></div>`;
-  });
-  const row=document.getElementById('nextRoundRow');row.innerHTML='';
-  if(isDone){
-    row.innerHTML=`<button class="next-round-btn" onclick="rematch()">🔄 เล่นใหม่</button>
-      <button class="next-round-btn secondary" onclick="location.href='index.html'">← GameHub</button>`;
-  }else{
-    if(role===S.guesser){
-      row.innerHTML=`<button class="next-round-btn" id="nextRoundBtn" onclick="goNextRound(this)">▶ รอบถัดไป</button>`;
-    }else{
-      row.innerHTML=`<div style="font-size:12px;color:var(--muted);text-align:center">รอ <span style="color:var(--gold)">${esc(names[S.guesser==='p1'?0:1])}</span> กดรอบถัดไป<span class="dot-anim"><span>.</span><span>.</span><span>.</span></span></div>`;
-    }
-  }
-  panel.classList.add('show');
-  setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}),80);
-}
-
-async function goNextRound(btn){
-  if(btn)btn.disabled=true;
-  await advance({});
-}
-
-/* Done */
-function handleDone(d){
-  showAllAnswers(d,true);
-}
-
-function abandoned(){
-  const panel=document.getElementById('allAnswersPanel');
-  document.getElementById('allAnsGrid').innerHTML=`<div style="padding:16px;text-align:center;color:var(--muted);font-size:14px;width:100%">👋 ผู้เล่นอีกฝั่งออกจากเกมแล้ว</div>`;
-  document.getElementById('nextRoundRow').innerHTML=`<button class="next-round-btn secondary" onclick="location.href='index.html'">← GameHub</button>`;
-  panel.classList.add('show');
-  setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}),80);
-}
-
-/* Helpers */
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
-function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-function confetti(){const cs=['#ffd700','#ff9f43','#fff','#00d4ff','#b44fff','#ff6b9d'];for(let i=0;i<80;i++)setTimeout(()=>{const e=document.createElement('div');e.className='cf';e.style.cssText=`left:${Math.random()*100}vw;background:${cs[i%cs.length]};width:${5+Math.random()*9}px;height:${5+Math.random()*9}px;border-radius:50% 0 50% 0;animation-duration:${2+Math.random()*3}s`;document.body.appendChild(e);setTimeout(()=>e.remove(),6000);},i*30);}
-
-function rematch(){
-  document.getElementById('winOverlay').classList.remove('show');
-  document.getElementById('allAnswersPanel').classList.remove('show');
-  // Reset notepad
-  document.getElementById('notepadText').value='';
-  if(!code||!role){
-    // No room — go lobby
-    started=false;setupDone=false;role=null;selChar=null;
-    S={names:['P1','P2'],scores:[0,0],round:1,guesser:'p1',setup:{},guesses:[],hints:{},hintReq:null,ql:3,qCount:0};
-    document.getElementById('answerInput').value='';
-    document.getElementById('selectedPreview').style.display='none';
-    document.getElementById('acList').className='ac-list';
-    showScreen('lobby');
-    return;
-  }
-  // Stay in same room — reset to setup phase
-  selChar=null;setupDone=false;
+function goSetupFresh(d){
+  window._selChar=null;
   document.getElementById('answerInput').value='';
-  document.getElementById('selectedPreview').style.display='none';
+  document.getElementById('selPrev').style.display='none';
   document.getElementById('acList').className='ac-list';
   document.getElementById('setupBtn').disabled=false;
   document.getElementById('setupBtn').textContent='🌟 ยืนยันโจทย์';
   document.getElementById('setupWaiting').style.display='none';
-  document.getElementById('setupReadyBadge').style.display='none';
-  // p1 resets the Firebase room data, p2 just waits
-  if(role==='p1'){
-    _fb.update(code,{status:'setup',setup:{},scores:{p1:0,p2:0},round:1,guesser:'p1',guesses:[],hints:{},hintReq:null,qCount:0,revealedRound:null,revealed:false});
+  document.getElementById('readyBadge').style.display='none';
+  goSetup(d);
+}
+
+/* ── SUBMIT SETUP ── */
+async function submitSetup(){
+  const ans=document.getElementById('answerInput').value.trim();
+  if(!ans){document.getElementById('answerInput').style.borderColor='var(--gold)';return;}
+  const img=window._selChar?.img||'', anime=window._selChar?.anime||'';
+  document.getElementById('setupBtn').disabled=true;
+  document.getElementById('setupBtn').textContent='✅ บันทึกแล้ว…';
+  document.getElementById('setupWaiting').style.display='block';
+  await _fb.setup(code,role,ans,img,anime);
+}
+
+/* ── GAME ── */
+
+function goGame(d){
+  const p1n=d.players?.p1?.name||'P1', p2n=d.players?.p2?.name||'P2';
+  document.getElementById('p1Name').textContent=p1n;
+  document.getElementById('p2Name').textContent=p2n;
+  const my=d.setup?.[role]||{};
+  document.getElementById('mySubName').textContent=my.ans||'—';
+  document.getElementById('mySubAnime').textContent=my.anime?'จาก: '+my.anime:'';
+  document.getElementById('mySubImgWrap').innerHTML=my.img
+    ?`<img class="ms-img" src="${my.img}" loading="lazy" onerror="this.outerHTML='<div class=ms-nopic>🎭</div>'">`
+    :`<div class="ms-nopic">🎭</div>`;
+  document.getElementById('revealBtn').disabled=false;
+  showScreen('game');
+}
+
+
+
+
+/* ── REVEAL — only reveals MY subject ── */
+async function doReveal(){
+  document.getElementById('revealBtn').disabled=true;
+  await _fb.reveal(code,role);
+  // แสดง waiting state ทันที (listener จะ update อีกที)
+  document.getElementById('revealNote').style.display='none';
+  document.getElementById('waitingReveal').style.display='block';
+}
+
+/* ── WAITING STATE ── */
+function updateWaiting(d){
+  const myRevealed=d.setup?.[role]?.revealed;
+  const oppRole=role==='p1'?'p2':'p1';
+  const oppRevealed=d.setup?.[oppRole]?.revealed;
+  const oppData=d.setup?.[oppRole]||{};
+  const oppName=role==='p1'?(d.players?.p2?.name||'P2'):(d.players?.p1?.name||'P1');
+  const oppClass=oppRole==='p1'?'p1-card':'p2-card';
+
+  // แสดง card ของฝั่งตรงข้ามทันทีที่เขาเฉลย
+  const oppCard=document.getElementById('oppRevealCard');
+  if(oppRevealed&&oppData.ans){
+    const imgHtml=oppData.img
+      ?`<img class="ans-img" src="${oppData.img}" loading="lazy" onerror="this.outerHTML='<div class=ans-nopic>🎭</div>'">`
+      :'<div class="ans-nopic">🎭</div>';
+    oppCard.innerHTML=`<div class="ans-card ${oppClass}" style="animation:none">
+      ${imgHtml}
+      <div class="ans-info">
+        <div class="ans-owner">${esc(oppName)} เฉลยแล้ว</div>
+        <div class="ans-name">${esc(oppData.ans)}</div>
+        ${oppData.anime?`<div class="ans-anime">จาก: ${esc(oppData.anime)}</div>`:''}
+      </div>
+    </div>`;
+    oppCard.style.display='block';
+  } else {
+    oppCard.style.display='none';
   }
-  showScreen('setup');
-  // Re-listen for partner ready + game start
-  _fb.listen(code,d2=>{
-    if(!d2)return;
-    const opp2=role==='p1'?'p2':'p1';
-    if(d2.setup?.[opp2]?.ready)document.getElementById('setupReadyBadge').style.display='block';
-    if(d2.status==='playing'&&!setupDone){setupDone=true;startGame(d2);}
+
+  if(myRevealed&&!oppRevealed){
+    document.getElementById('revealBtn').disabled=true;
+    document.getElementById('revealNote').style.display='none';
+    document.getElementById('waitingReveal').style.display='block';
+  } else if(!myRevealed&&oppRevealed){
+    document.getElementById('revealBtn').disabled=false;
+    document.getElementById('revealNote').textContent='⚡ อีกฝั่งเฉลยแล้ว — ถึงคราวคุณ!';
+    document.getElementById('revealNote').style.color='var(--gold)';
+    document.getElementById('revealNote').style.display='block';
+    document.getElementById('waitingReveal').style.display='none';
+  }
+}
+
+/* ── ANSWERS ── */
+function buildAnswerCards(d){
+  const names=[d.players?.p1?.name||'P1', d.players?.p2?.name||'P2'];
+  const setup=d.setup||{};
+  const grid=document.getElementById('answersGrid');
+  grid.innerHTML='';
+  ['p1','p2'].forEach((r2,i)=>{
+    const sd=setup[r2]||{};
+    if(!sd.ans||!sd.revealed)return;// only show if revealed
+    const imgHtml=sd.img
+      ?`<img class="ans-img" src="${sd.img}" loading="lazy" onerror="this.outerHTML='<div class=ans-nopic>🎭</div>'">`
+      :`<div class="ans-nopic">🎭</div>`;
+    const card=document.createElement('div');
+    card.className=`ans-card ${r2}-card`;
+    card.innerHTML=`${imgHtml}
+      <div class="ans-info">
+        <div class="ans-owner">${esc(names[i])} ตั้งไว้</div>
+        <div class="ans-name">${esc(sd.ans)}</div>
+        ${sd.anime?`<div class="ans-anime">จาก: ${esc(sd.anime)}</div>`:''}
+      </div>`;
+    grid.appendChild(card);
   });
 }
 
-window.addEventListener('beforeunload',()=>{if(code&&role)_fb?.update(code,{status:'abandoned'});});
-document.getElementById('guessInput').addEventListener('keydown',e=>{if(e.key==='Enter')submitGuess();});
+function showAnswers(d){
+  buildAnswerCards(d);
+  // Only p1 (room creator) sees play again button
+  document.getElementById('playAgainBtn').style.display=role==='p1'?'inline-flex':'none';
+  showScreen('answers');
+}
 
-/* ══ AUTOCOMPLETE (Jikan) ══ */
+function updateAnswers(d){
+  buildAnswerCards(d);// just re-render cards
+}
+
+/* ── PLAY AGAIN (p1 only) ── */
+async function playAgain(){
+  if(role!=='p1')return;
+  const ni = document.getElementById('noteInput');
+  if(ni) ni.value = '';
+  await _fb.reset(code);
+}
+
+
+
+/* ── HELPERS ── */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function warpBack(){
+  // Overridden by page transition script below
+  location.href='index.html';
+}
+
+window.addEventListener('beforeunload',()=>{ if(code)_fb?.update(code,{status:'abandoned'}); });
+</script>
+
+<!-- ═══════ AUTOCOMPLETE ═══════ -->
+<script>
 let acT=null,acI=-1;
 const aIn=document.getElementById('answerInput');
 const aLi=document.getElementById('acList');
 
 aIn.addEventListener('input',e=>{
-  selChar=null;
+  window._selChar=null;
   const q=e.target.value.trim();
   if(q.length<2){hideAc();return;}
   clearTimeout(acT);acT=setTimeout(()=>doSearch(q),380);
@@ -1092,8 +747,10 @@ aIn.addEventListener('keydown',e=>{
 document.addEventListener('click',e=>{if(!e.target.closest('.ac-wrap'))hideAc();});
 function hlAc(it){it.forEach((x,i)=>x.classList.toggle('hl',i===acI));if(acI>=0&&it[acI])it[acI].scrollIntoView({block:'nearest'});}
 
+function e2(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
 async function doSearch(q){
-  aLi.innerHTML='<div class="ac-loading">🎭 กำลังค้นหา...</div>';
+  aLi.innerHTML='<div class="ac-load">🎭 กำลังค้นหา…</div>';
   aLi.classList.add('open');acI=-1;
   try{
     const[cr,ar]=await Promise.all([
@@ -1101,32 +758,32 @@ async function doSearch(q){
       fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(q)}&limit=4&order_by=popularity&sort=asc`).then(r=>r.ok?r.json():null).catch(()=>null)
     ]);
     renderAc(cr?.data||[],ar?.data||[]);
-  }catch{aLi.innerHTML='<div class="ac-loading" style="color:rgba(255,215,0,.4)">⚠️ ค้นหาไม่ได้ชั่วคราว</div>';}
+  }catch{aLi.innerHTML='<div class="ac-load" style="color:rgba(245,200,66,.4)">⚠️ ค้นหาไม่ได้ชั่วคราว</div>';}
 }
 
 function renderAc(chars,animes){
-  if(!chars.length&&!animes.length){aLi.innerHTML='<div class="ac-loading">ไม่พบผลลัพธ์</div>';return;}
+  if(!chars.length&&!animes.length){aLi.innerHTML='<div class="ac-load">ไม่พบผลลัพธ์</div>';return;}
   aLi.innerHTML='';
   if(chars.length){
-    const h=document.createElement('div');h.className='ac-section-head';h.textContent='ตัวละคร';aLi.appendChild(h);
+    const h=document.createElement('div');h.className='ac-head';h.textContent='ตัวละคร';aLi.appendChild(h);
     chars.forEach(ch=>{
       const name=ch.name||'',img=ch.images?.jpg?.image_url||ch.images?.webp?.image_url||'';
       const anime=ch.anime?.[0]?.anime?.title||'',kanji=ch.name_kanji||'';
       const it=document.createElement('div');it.className='ac-item';
       it.innerHTML=(img?`<img class="ac-img" src="${img}" loading="lazy" onerror="this.style.display='none'">`:`<div class="ac-nopic">🎭</div>`)+
-        `<div class="ac-info"><div class="ac-name">${esc(name)}</div>${kanji?`<div class="ac-sub">${esc(kanji)}</div>`:''}${anime?`<div class="ac-meta">${esc(anime)}</div>`:''}</div>`;
-      it.onclick=()=>{aIn.value=name;selChar={name,img,anime};showPrev(name,img,anime);hideAc();};
+        `<div class="ac-info"><div class="ac-name">${e2(name)}</div>${kanji?`<div class="ac-sub">${e2(kanji)}</div>`:''}${anime?`<div class="ac-meta">${e2(anime)}</div>`:''}</div>`;
+      it.onclick=()=>{aIn.value=name;window._selChar={name,img,anime};showPrev(name,img,anime);hideAc();};
       aLi.appendChild(it);
     });
   }
   if(animes.length){
-    const h=document.createElement('div');h.className='ac-section-head';h.textContent='อนิเมะ';aLi.appendChild(h);
+    const h=document.createElement('div');h.className='ac-head';h.textContent='อนิเมะ';aLi.appendChild(h);
     animes.forEach(an=>{
       const title=an.title||an.title_english||'',img=an.images?.jpg?.image_url||'';
       const it=document.createElement('div');it.className='ac-item';
       it.innerHTML=(img?`<img class="ac-img" src="${img}" loading="lazy" onerror="this.style.display='none'">`:`<div class="ac-nopic">🌸</div>`)+
-        `<div class="ac-info"><div class="ac-name">${esc(title)}</div>${an.title_japanese?`<div class="ac-sub">${esc(an.title_japanese)}</div>`:''}${an.year?`<div class="ac-meta">${an.year}</div>`:''}</div>`;
-      it.onclick=()=>{aIn.value=title;selChar={name:title,img,anime:an.title_japanese||''};showPrev(title,img,'');hideAc();};
+        `<div class="ac-info"><div class="ac-name">${e2(title)}</div>${an.title_japanese?`<div class="ac-sub">${e2(an.title_japanese)}</div>`:''}${an.year?`<div class="ac-meta">${an.year}</div>`:''}</div>`;
+      it.onclick=()=>{aIn.value=title;window._selChar={name:title,img,anime:an.title_japanese||''};showPrev(title,img,'');hideAc();};
       aLi.appendChild(it);
     });
   }
@@ -1135,18 +792,221 @@ function renderAc(chars,animes){
 function showPrev(name,img,anime){
   document.getElementById('selName').textContent=name;
   document.getElementById('selAnime').textContent=anime||'';
-  document.getElementById('selImgWrap').innerHTML=img?`<img class="sel-img" src="${img}" loading="lazy" onerror="this.outerHTML='<div class=sel-nopic>🎭</div>'">`:`<div class="sel-nopic">🎭</div>`;
-  document.getElementById('selectedPreview').style.display='flex';
+  document.getElementById('selImgWrap').innerHTML=img
+    ?`<img class="sel-img" src="${img}" loading="lazy" onerror="this.outerHTML='<div class=sel-nopic>🎭</div>'">`
+    :`<div class="sel-nopic">🎭</div>`;
+  document.getElementById('selPrev').style.display='flex';
 }
 function hideAc(){aLi.classList.remove('open');aLi.innerHTML='';acI=-1;}
 </script>
 
-<!-- Stars -->
+<!-- ═══════ MAPLE LEAVES ═══════ -->
 <script>
 const cv=document.getElementById('stars'),cx=cv.getContext('2d');
-let W,H;function rsz(){W=cv.width=innerWidth;H=cv.height=innerHeight;}rsz();addEventListener('resize',rsz);
-const sa=Array.from({length:120},()=>({x:Math.random()*3000,y:Math.random()*2000,r:Math.random()*.9+.1,a:Math.random()*.6+.1,t:Math.random()*Math.PI*2}));
-function ds(){cx.clearRect(0,0,W,H);sa.forEach(s=>{s.t+=.015;const a=s.a*(.5+.5*Math.sin(s.t));cx.beginPath();cx.arc(s.x%W,s.y%H,s.r,0,Math.PI*2);cx.fillStyle=`rgba(255,220,130,${a})`;cx.fill();});requestAnimationFrame(ds);}ds();
+let W,H;
+function rsz(){W=cv.width=innerWidth;H=cv.height=innerHeight;}rsz();addEventListener('resize',rsz);
+
+// สีคู่สำหรับ gradient: [ปลาย, กลาง]
+const LEAF_PALETTES=[
+  ['#8B1A00','#D4401A'],['#A02000','#E05820'],['#7A1500','#C83510'],
+  ['#9B3800','#DC6414'],['#6B1200','#B92808'],['#8C5200','#D28C1E'],
+  ['#B84000','#F07819'],['#7D2000','#C04820']
+];
+
+// วาดใบเมเปิ้ลแบบสมจริง
+function drawMaple(lx,ly,sz,rot,alpha,pal,tilt){
+  cx.save();
+  cx.translate(lx,ly);
+  cx.rotate(rot);
+  // จำลองการพลิกใบด้วย scaleX
+  const flipX = Math.cos(tilt);
+  cx.scale(sz*flipX, sz);
+  cx.globalAlpha=alpha;
+
+  // --- วาดเงาใต้ใบ ---
+  cx.save();
+  cx.translate(0.04, 0.06);
+  cx.globalAlpha=alpha*0.25;
+  leafPath(cx);
+  cx.fillStyle='rgba(0,0,0,0.6)';
+  cx.fill();
+  cx.restore();
+
+  // --- ใบหลัก: gradient จากกลาง→ปลาย ---
+  cx.save();
+  const grad=cx.createRadialGradient(0,-0.3,0.1, 0,-0.3,1.4);
+  grad.addColorStop(0, pal[1]);   // สว่างกลาง
+  grad.addColorStop(0.55, pal[0]); // เข้มปลาย
+  grad.addColorStop(1,   '#3a0800'); // ขอบมืด
+  leafPath(cx);
+  cx.fillStyle=grad;
+  cx.fill();
+  cx.restore();
+
+  // --- ไฮไลต์แสง (ขอบบน) ---
+  cx.save();
+  cx.globalAlpha=alpha*0.18;
+  leafPath(cx);
+  const hg=cx.createLinearGradient(0,-1.7,0,0.2);
+  hg.addColorStop(0,'rgba(255,220,180,0.9)');
+  hg.addColorStop(0.4,'rgba(255,180,100,0.3)');
+  hg.addColorStop(1,'rgba(0,0,0,0)');
+  cx.fillStyle=hg;
+  cx.fill();
+  cx.restore();
+
+  // --- เส้นเอ็นใบ ---
+  cx.save();
+  cx.strokeStyle='rgba(0,0,0,0.28)';
+  cx.lineWidth=0.055;
+  cx.lineCap='round';
+  // เส้นกลาง
+  cx.beginPath();cx.moveTo(0,0.95);cx.lineTo(0,-1.15);cx.stroke();
+  // เส้นแขนง
+  [[0,-0.25,1.1,-0.35],[0,-0.25,-1.1,-0.35],
+   [0.08,0.1,0.85,0.55],[-0.08,0.1,-0.85,0.55]].forEach(([x1,y1,x2,y2])=>{
+    cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
+  });
+  // เส้นแขนงย่อย
+  cx.lineWidth=0.038;
+  cx.strokeStyle='rgba(0,0,0,0.16)';
+  [[0,-0.65,0.6,-0.9],[0,-0.65,-0.6,-0.9],
+   [1.1,-0.35,1.35,0.05],[-1.1,-0.35,-1.35,0.05]].forEach(([x1,y1,x2,y2])=>{
+    cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
+  });
+  cx.restore();
+
+  // --- ก้านใบ ---
+  cx.save();
+  cx.globalAlpha=alpha;
+  cx.strokeStyle= '#6B3010';
+  cx.lineWidth=0.1;
+  cx.lineCap='round';
+  cx.beginPath();cx.moveTo(0,0.95);cx.lineTo(0,1.55);cx.stroke();
+  cx.restore();
+
+  cx.restore();
+}
+
+function leafPath(c){
+  c.beginPath();
+  c.moveTo(0,0.9);
+  // ก้านขึ้นกลาง
+  c.bezierCurveTo(0.08,0.5,-0.08,0.4,0,0.1);
+  // แฉกซ้ายล่าง
+  c.bezierCurveTo(-0.25,0.25,-0.75,0.65,-1.1,0.72);
+  c.bezierCurveTo(-0.95,0.55,-0.8,0.35,-0.6,0.3);
+  // แฉกซ้ายบน
+  c.bezierCurveTo(-0.9,0.1,-1.4,-0.05,-1.45,-0.1);
+  c.bezierCurveTo(-1.2,-0.15,-0.95,-0.35,-0.75,-0.42);
+  // แฉกซ้ายกลาง
+  c.bezierCurveTo(-1.0,-0.6,-1.05,-0.95,-0.95,-1.0);
+  c.bezierCurveTo(-0.75,-0.85,-0.55,-0.65,-0.38,-0.62);
+  // แฉกบน
+  c.bezierCurveTo(-0.45,-1.0,-0.35,-1.45,-0.28,-1.6);
+  c.bezierCurveTo(-0.1,-1.35,0,-1.25,0.0,-1.1);
+  c.bezierCurveTo(0.0,-1.25,0.1,-1.35,0.28,-1.6);
+  c.bezierCurveTo(0.35,-1.45,0.45,-1.0,0.38,-0.62);
+  // แฉกขวากลาง
+  c.bezierCurveTo(0.55,-0.65,0.75,-0.85,0.95,-1.0);
+  c.bezierCurveTo(1.05,-0.95,1.0,-0.6,0.75,-0.42);
+  // แฉกขวาบน
+  c.bezierCurveTo(0.95,-0.35,1.2,-0.15,1.45,-0.1);
+  c.bezierCurveTo(1.4,-0.05,0.9,0.1,0.6,0.3);
+  // แฉกขวาล่าง
+  c.bezierCurveTo(0.8,0.35,0.95,0.55,1.1,0.72);
+  c.bezierCurveTo(0.75,0.65,0.25,0.25,0.0,0.1);
+  c.bezierCurveTo(0.08,0.4,-0.08,0.5,0,0.9);
+  c.closePath();
+}
+
+// wind system
+let windX=0, windTarget=0, windT=0;
+
+const leaves=Array.from({length:28},(_,i)=>({
+  x: Math.random()*window.innerWidth,
+  y: Math.random()*window.innerHeight,
+  sz: Math.random()*10+8,
+  vx: (Math.random()-.5)*0.3,
+  vy: Math.random()*0.5+0.25,
+  rot: Math.random()*Math.PI*2,
+  rotV: (Math.random()-.5)*0.018,
+  sway: Math.random()*Math.PI*2,
+  swayS: Math.random()*0.01+0.005,
+  swayAmp: Math.random()*0.4+0.2,
+  tilt: Math.random()*Math.PI*2,  // การพลิกใบ
+  tiltV: (Math.random()-.5)*0.015,
+  a: Math.random()*0.3+0.5,
+  pal: LEAF_PALETTES[i%LEAF_PALETTES.length],
+  wobble: Math.random()*Math.PI*2,
+  wobbleS: Math.random()*0.008+0.003,
+}));
+
+function dl(ts){
+  cx.clearRect(0,0,W,H);
+
+  // อัพเดทลม
+  windT+=(ts||0);
+  if(Math.random()<0.003){ windTarget=(Math.random()-.5)*0.6; }
+  windX+=(windTarget-windX)*0.004;
+
+  leaves.forEach(l=>{
+    l.sway+=l.swayS;
+    l.wobble+=l.wobbleS;
+    l.tilt+=l.tiltV+(Math.sin(l.wobble)*0.005);
+
+    // แรงลม + การแกว่ง + การโคลงเคลง
+    const swayForce=Math.sin(l.sway)*l.swayAmp;
+    l.x+=l.vx+swayForce+windX;
+    l.y+=l.vy + Math.sin(l.wobble*0.5)*0.08; // โคลงขึ้นลงเล็กน้อย
+    l.rot+=l.rotV+Math.sin(l.sway*0.7)*0.003;
+
+    // reset
+    if(l.y>H+60){
+      l.y=-60;
+      l.x=Math.random()*W;
+      l.vx=(Math.random()-.5)*0.3;
+      l.vy=Math.random()*0.5+0.25;
+    }
+    if(l.x<-80) l.x=W+80;
+    if(l.x>W+80) l.x=-80;
+
+    drawMaple(l.x,l.y,l.sz,l.rot,l.a,l.pal,l.tilt);
+  });
+  requestAnimationFrame(dl);
+}
+dl();
 </script>
+
+<!-- ═══ PAGE TRANSITION ═══ -->
+<style>
+/* หน้าเริ่มต้นที่ดำ แล้ว fade in เอง = ไม่กระพริบ */
+html { background:#06040f; }
+#curtain{
+  position:fixed;inset:0;z-index:9999;pointer-events:none;
+  background:#0f0900;opacity:1;
+  transition:opacity .32s ease;
+}
+#curtain.fade-in{opacity:0;pointer-events:none;}
+#curtain.fade-out{opacity:1;pointer-events:all;}
+@keyframes fadePageIn{from{opacity:0}to{opacity:1}}
+.wrap{animation:fadePageIn .32s ease both;}
+</style>
+<div id="curtain"></div>
+<script>
+(function(){
+  const c=document.getElementById('curtain');
+  /* Fade in ทันทีที่หน้าโหลด */
+  requestAnimationFrame(()=>requestAnimationFrame(()=>c.classList.add('fade-in')));
+  window._navigateTo=function(url){
+    c.classList.remove('fade-in');
+    c.classList.add('fade-out');
+    setTimeout(()=>location.href=url,300);
+  };
+  window.warpBack=function(){window._navigateTo('index.html');};
+})();
+</script>
+<script>setTimeout(()=>{document.documentElement.style.overflow="";},400);</script>
+<script>setTimeout(()=>{document.documentElement.style.overflow="";},400);</script>
 </body>
 </html>
