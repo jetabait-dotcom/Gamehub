@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AnimeGrid — Game Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+Thai:wght@300;400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#04020e;--sakura:#ff6fa3;--sakura2:#ff9dc8;--sakura-glow:rgba(255,111,163,0.55);
+  --sakura-dim:rgba(255,111,163,0.13);--cosmic:#c084fc;--petal:#ffb7d5;
+  --border:rgba(255,111,163,0.14);--muted:rgba(255,183,213,0.48);--text:#fce7f3;
+  --surface:rgba(255,111,163,0.06);
+  --p1:#00d4ff;--p1-glow:rgba(0,212,255,0.4);
+  --p2:#ff6fa3;--p2-glow:rgba(255,111,163,0.4);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100vh}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans Thai',sans-serif;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse at 20% 10%,rgba(192,132,252,.09) 0%,transparent 50%),
+             radial-gradient(ellipse at 80% 80%,rgba(255,111,163,.09) 0%,transparent 50%)}
+.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;animation:orbDrift ease-in-out infinite}
+@keyframes orbDrift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(20px,-25px) scale(1.07)}}
+#petals{position:fixed;inset:0;z-index:0;pointer-events:none}
+.wrapper{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+/* LOADING */
+#loadingOverlay{position:fixed;inset:0;z-index:999;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.spin{width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--sakura);
+  border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:.3em;color:var(--muted)}
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 36px;
+  border-bottom:1px solid var(--border);backdrop-filter:blur(20px);
+  background:rgba(4,2,14,.72);position:sticky;top:0;z-index:50}
+.nav-logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.logo-cube{width:36px;height:36px;background:linear-gradient(135deg,var(--sakura),var(--cosmic));
+  border-radius:10px;display:grid;place-items:center;font-size:18px;
+  box-shadow:0 0 22px var(--sakura-glow);animation:cubePulse 3s ease-in-out infinite}
+@keyframes cubePulse{0%,100%{box-shadow:0 0 22px var(--sakura-glow)}50%{box-shadow:0 0 40px var(--sakura-glow),0 0 60px rgba(192,132,252,.35)}}
+.logo-label{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;letter-spacing:.18em;
+  background:linear-gradient(135deg,#fff 20%,var(--sakura2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.nav-right{display:flex;align-items:center;gap:12px}
+.nav-pill{padding:5px 14px;border-radius:20px;font-size:10px;font-family:'Orbitron',monospace;
+  letter-spacing:.1em;background:var(--sakura-dim);border:1px solid rgba(255,111,163,.3);color:var(--sakura2)}
+.nav-uid{font-size:10px;color:rgba(255,183,213,.25);font-family:'Orbitron',monospace;letter-spacing:.05em}
+.back-btn{display:flex;align-items:center;gap:7px;text-decoration:none;padding:7px 14px;
+  border-radius:10px;border:1px solid var(--border);color:var(--muted);font-size:13px;transition:all .2s}
+.back-btn:hover{border-color:rgba(255,111,163,.35);color:var(--text)}
+.back-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+/* SCREENS */
+.screen{display:none;flex:1}.screen.active{display:flex;flex-direction:column}
+@keyframes riseUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+/* LOBBY */
+.lobby-inner{display:flex;flex-direction:column;align-items:center;gap:28px;padding:48px 24px 80px;text-align:center}
+.lobby-eyebrow{font-size:11px;letter-spacing:.5em;text-transform:uppercase;color:var(--sakura);
+  text-shadow:0 0 14px var(--sakura-glow);opacity:0;animation:riseUp .8s .05s forwards}
+.lobby-title{font-family:'Cinzel Decorative',cursive;font-size:clamp(36px,7.5vw,70px);font-weight:900;line-height:1;
+  background:linear-gradient(140deg,#fff 0%,var(--petal) 45%,var(--sakura) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 30px var(--sakura-glow));margin:4px 0 8px;opacity:0;animation:riseUp .8s .1s forwards}
+.lobby-sub{font-size:clamp(13px,1.7vw,15px);color:var(--muted);line-height:1.85;max-width:460px;
+  opacity:0;animation:riseUp .8s .18s forwards}
+/* MODE */
+.mode-section{display:flex;flex-direction:column;align-items:center;gap:14px;max-width:580px;width:100%;
+  opacity:0;animation:riseUp .7s .22s forwards}
+.mode-label{font-size:11px;letter-spacing:.35em;text-transform:uppercase;color:var(--muted)}
+.mode-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}
+.mode-card{padding:20px 16px;border-radius:18px;border:1px solid var(--border);background:var(--surface);
+  cursor:pointer;transition:all .25s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.mode-card:hover{border-color:rgba(255,111,163,.35);transform:translateY(-3px);background:rgba(255,111,163,.1)}
+.mode-card.active{border-color:var(--sakura);background:var(--sakura-dim);box-shadow:0 0 24px rgba(255,111,163,.2)}
+.mode-icon{font-size:32px}.mode-name{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;color:#fff;letter-spacing:.1em}
+.mode-desc{font-size:11px;color:var(--muted);line-height:1.5}
+/* ROOM */
+.room-tab{flex:1;padding:10px 16px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03);
+  color:var(--muted);font-family:'Noto Sans Thai',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.room-tab:hover{border-color:rgba(255,111,163,.3);color:var(--text)}
+.room-tab.active{background:var(--sakura-dim);border-color:rgba(255,111,163,.55);color:var(--sakura2);box-shadow:0 0 16px var(--sakura-dim)}
+.room-panel{display:flex;flex-direction:column;align-items:center;gap:12px;max-width:420px;width:100%;
+  opacity:0;animation:riseUp .6s .1s forwards}
+.room-panel-title{font-size:13px;letter-spacing:.25em;text-transform:uppercase;color:var(--sakura)}
+.room-input{flex:1;padding:12px 16px;background:rgba(255,111,163,.05);border:1px solid var(--border);
+  border-radius:12px;color:var(--text);font-family:'Orbitron',monospace;
+  font-size:15px;outline:none;transition:all .2s;letter-spacing:.12em;text-align:center}
+.room-input:focus{border-color:var(--sakura);box-shadow:0 0 14px rgba(255,111,163,.28);background:var(--sakura-dim)}
+.room-input::placeholder{font-family:'Noto Sans Thai',sans-serif;font-size:13px;letter-spacing:0;color:rgba(255,183,213,.3)}
+.room-btn{padding:12px 20px;border-radius:12px;border:none;font-family:'Noto Sans Thai',sans-serif;
+  font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
+.room-btn.create{background:linear-gradient(135deg,var(--sakura),var(--cosmic));color:#fff;box-shadow:0 4px 18px rgba(255,111,163,.3)}
+.room-btn.create:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(255,111,163,.45)}
+.room-btn.join{background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.3);color:var(--p1)}
+.room-btn.join:hover{background:rgba(0,212,255,.2);transform:translateY(-2px)}
+.room-code-display{padding:16px 24px;background:rgba(255,111,163,.07);border:1px solid rgba(255,111,163,.3);
+  border-radius:14px;text-align:center;width:100%}
+.room-code-label{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.room-code-val{font-family:'Orbitron',monospace;font-size:28px;font-weight:900;letter-spacing:.25em;
+  background:linear-gradient(135deg,var(--sakura),var(--cosmic));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.room-code-hint{font-size:11px;color:var(--muted);margin-top:6px}
+.waiting-box{display:flex;flex-direction:column;align-items:center;gap:10px;
+  padding:16px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:12px;width:100%;margin-top:8px}
+.dot-anim span{animation:dotB 1.4s infinite both}
+.dot-anim span:nth-child(2){animation-delay:.2s}
+.dot-anim span:nth-child(3){animation-delay:.4s}
+@keyframes dotB{0%,80%,100%{opacity:.2}40%{opacity:1}}
+/* PACK */
+.pack-section{display:flex;flex-direction:column;align-items:center;gap:13px;max-width:680px;width:100%;
+  opacity:0;animation:riseUp .7s .34s forwards}
+.pack-label{font-size:11px;letter-spacing:.35em;text-transform:uppercase;color:var(--muted)}
+.pack-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.pack-btn{padding:8px 20px;border-radius:30px;border:1px solid var(--border);background:rgba(255,255,255,.03);
+  color:var(--muted);font-family:'Noto Sans Thai',sans-serif;font-size:13px;cursor:pointer;transition:all .2s}
+.pack-btn:hover{border-color:rgba(255,111,163,.3);color:var(--text)}
+.pack-btn.active{background:var(--sakura-dim);border-color:rgba(255,111,163,.55);color:var(--sakura2);box-shadow:0 0 16px var(--sakura-dim)}
+.start-btn{padding:16px 60px;background:linear-gradient(135deg,var(--sakura),var(--cosmic));
+  border:none;border-radius:50px;color:#fff;font-family:'Orbitron',monospace;font-size:15px;
+  font-weight:700;letter-spacing:.12em;cursor:pointer;transition:all .25s;
+  box-shadow:0 8px 32px rgba(255,111,163,.4);position:relative;overflow:hidden;
+  opacity:0;animation:riseUp .7s .42s forwards}
+.start-btn::before{content:'';position:absolute;top:-50%;left:-60%;width:40%;height:200%;
+  background:rgba(255,255,255,.18);transform:skewX(-20deg);transition:left .5s}
+.start-btn:hover::before{left:130%}
+.start-btn:hover{transform:translateY(-3px);box-shadow:0 12px 42px rgba(255,111,163,.55)}
+/* GAME */
+.game-inner{display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 16px 60px;width:100%}
+.game-topbar{width:100%;max-width:780px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.turn-bar{width:100%;max-width:780px;display:flex;gap:10px;margin-bottom:4px}
+.player-bar{flex:1;padding:10px 14px;border-radius:14px;border:2px solid transparent;
+  display:flex;align-items:center;gap:10px;transition:all .35s;background:rgba(255,255,255,.03)}
+.player-bar.active-turn{border-color:var(--p-color);box-shadow:0 0 22px color-mix(in srgb,var(--p-color) 35%,transparent);background:rgba(255,255,255,.06)}
+.player-avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:16px;flex-shrink:0}
+.p1-bar{--p-color:var(--p1)}.p1-bar .player-avatar{background:linear-gradient(135deg,var(--p1),#0099ff);box-shadow:0 0 12px var(--p1-glow)}
+.p2-bar{--p-color:var(--p2);flex-direction:row-reverse;text-align:right}.p2-bar .player-avatar{background:linear-gradient(135deg,var(--p2),var(--cosmic));box-shadow:0 0 12px var(--p2-glow)}
+.player-info{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.player-name{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player-score-row{font-family:'Orbitron',monospace;font-size:17px;font-weight:900;
+  background:linear-gradient(135deg,var(--p-color),white);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.p2-bar .player-info{align-items:flex-end}
+.turn-center{display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;padding:0 6px}
+.vs-txt{font-family:'Orbitron',monospace;font-size:11px;color:rgba(255,255,255,.2);letter-spacing:.15em}
+.turn-indicator{font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--sakura);
+  text-shadow:0 0 8px var(--sakura-glow);animation:blink 1.2s ease-in-out infinite alternate}
+@keyframes blink{from{opacity:.5}to{opacity:1}}
+.score-pill{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 18px;
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;min-width:90px}
+.score-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.score-val{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;
+  background:linear-gradient(135deg,var(--sakura),var(--cosmic));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.progress-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
+.progress-label{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.progress-bar-bg{width:100%;max-width:200px;height:6px;background:rgba(255,111,163,.1);border-radius:4px;overflow:hidden}
+.progress-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--sakura),var(--cosmic));transition:width .45s ease;box-shadow:0 0 10px var(--sakura-glow)}
+.game-cat-tag{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--petal);text-shadow:0 0 10px var(--sakura-glow);text-align:center}
+/* GRID */
+.grid-outer{width:100%;max-width:780px;display:grid;grid-template-columns:90px repeat(3,1fr);gap:7px}
+.col-header{display:flex;align-items:center;justify-content:center;text-align:center;padding:12px 8px;
+  background:rgba(255,111,163,.06);border:1px solid rgba(255,111,163,.18);border-radius:12px;
+  font-size:clamp(9px,1.3vw,12px);font-weight:700;color:rgba(255,255,255,.72);line-height:1.3}
+.row-header{display:flex;align-items:center;justify-content:center;text-align:center;padding:10px 6px;
+  background:rgba(192,132,252,.06);border:1px solid rgba(192,132,252,.18);border-radius:12px;
+  font-size:clamp(9px,1.3vw,12px);font-weight:700;color:rgba(255,255,255,.72);line-height:1.3}
+.grid-cell{aspect-ratio:1;background:rgba(255,111,163,.03);border:1px solid var(--border);
+  border-radius:14px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .22s;position:relative;overflow:hidden;min-height:140px}
+.grid-cell::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s;
+  background:radial-gradient(circle at 50%,rgba(255,111,163,.12),transparent 70%)}
+.grid-cell:hover:not(.filled):not(.blocked)::before{opacity:1}
+.grid-cell:hover:not(.filled):not(.blocked){border-color:rgba(255,111,163,.4);transform:scale(1.03)}
+.cell-plus{font-size:24px;opacity:.18;transition:all .2s;color:var(--sakura)}
+.grid-cell:hover:not(.filled):not(.blocked) .cell-plus{opacity:.5;transform:scale(1.2)}
+.grid-cell.filled{cursor:default;border-width:2px}.grid-cell.filled:hover{transform:none}
+.grid-cell.filled-p1{border-color:rgba(0,212,255,.5);background:rgba(0,212,255,.07)}
+.grid-cell.filled-p2{border-color:rgba(255,111,163,.5);background:rgba(255,111,163,.08)}
+.grid-cell.blocked{cursor:not-allowed;opacity:.45}
+.cell-content{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  padding:0 0 6px;text-align:center;width:100%;height:100%;position:relative}
+.cell-img{position:absolute;top:0;left:0;width:100%;height:100%;border-radius:12px;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,.6)}
+.cell-text-wrap{position:relative;z-index:2;width:100%;padding:18px 6px 0;
+  background:linear-gradient(to top,rgba(4,2,14,.92) 70%,transparent)}
+.cell-char{font-size:clamp(9px,1.2vw,11px);font-weight:700;line-height:1.25;word-break:break-word;color:#fff}
+.cell-series{font-size:clamp(7px,.85vw,9px);color:var(--muted);line-height:1.2}
+/* no-image cell: name centered with frosted glass */
+.cell-noimg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px;
+  background:rgba(255,255,255,0.05);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-radius:12px;}
+.cell-noimg .cell-char{font-size:clamp(10px,1.4vw,13px);text-align:center}
+.cell-noimg .cell-series{text-align:center}
+/* name setup modal - moved to gamehub */
+.cell-owner-badge{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;
+  display:grid;place-items:center;font-size:8px;font-weight:900;font-family:'Orbitron',monospace;z-index:3}
+.badge-p1{background:var(--p1);color:#000;box-shadow:0 0 8px var(--p1-glow)}
+.badge-p2{background:var(--p2);color:#000;box-shadow:0 0 8px var(--p2-glow)}
+.cell-bar{position:absolute;bottom:0;left:0;right:0;height:3px;z-index:3}
+.cell-bar-p1{background:linear-gradient(90deg,var(--p1),#0099ff)}
+.cell-bar-p2{background:linear-gradient(90deg,var(--sakura),var(--cosmic))}
+.grid-cell.filled-pop{animation:cellPop .35s ease}
+@keyframes cellPop{0%{transform:scale(.88)}60%{transform:scale(1.06)}100%{transform:scale(1)}}
+.grid-cell.win-glow{animation:winPulse .55s ease infinite alternate !important;border-width:2px !important}
+.grid-cell.win-glow-p1{border-color:var(--p1)!important;box-shadow:0 0 32px var(--p1-glow),inset 0 0 20px rgba(0,212,255,.12)!important;background:rgba(0,212,255,.16)!important}
+.grid-cell.win-glow-p2{border-color:var(--p2)!important;box-shadow:0 0 32px var(--p2-glow),inset 0 0 20px rgba(255,111,163,.12)!important;background:rgba(255,111,163,.16)!important}
+@keyframes winPulse{from{filter:brightness(1)}to{filter:brightness(1.55)}}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:100;
+  background:rgba(4,2,14,.88);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex;animation:modalIn .25s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.modal{background:linear-gradient(145deg,#130820,#0a0418);border:1px solid rgba(255,111,163,.22);
+  border-radius:24px;padding:28px 24px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,111,163,.1)}
+.modal-eyebrow{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--sakura)}
+.modal-question{font-family:'Cinzel Decorative',cursive;font-size:clamp(12px,2.3vw,16px);line-height:1.5;color:#fff}
+.q-row{color:var(--sakura)}.q-x{color:var(--muted);font-size:.75em;margin:0 6px}.q-col{color:var(--cosmic)}
+.modal-divider{height:1px;background:linear-gradient(90deg,var(--sakura),var(--cosmic),transparent);opacity:.35}
+.modal-turn-badge{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;
+  font-size:12px;font-weight:700;font-family:'Orbitron',monospace;letter-spacing:.08em}
+.p1-badge{background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.3);color:var(--p1)}
+.p2-badge{background:rgba(255,111,163,.12);border:1px solid rgba(255,111,163,.3);color:var(--sakura)}
+.answer-field{display:flex;flex-direction:column;gap:6px}
+.answer-label{font-size:11px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase}
+.input-wrap{position:relative}
+.answer-input{padding:13px 16px;background:rgba(255,111,163,.05);border:1px solid var(--border);
+  border-radius:12px;color:var(--text);font-family:'Noto Sans Thai',sans-serif;
+  font-size:15px;outline:none;transition:all .2s;width:100%}
+.answer-input:focus{border-color:var(--sakura);box-shadow:0 0 14px rgba(255,111,163,.28);background:var(--sakura-dim)}
+.answer-series{padding:9px 14px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,111,163,.15);
+  border-radius:10px;color:var(--muted);font-family:'Noto Sans Thai',sans-serif;
+  font-size:13px;outline:none;transition:all .2s;width:100%}
+.answer-series:focus{border-color:rgba(255,111,163,.3);color:var(--text)}
+.autocomplete-list{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:300;
+  background:linear-gradient(145deg,#1a0a28,#10061e);border:1px solid rgba(255,111,163,.3);
+  border-radius:16px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.7);display:none;max-height:300px;overflow-y:auto}
+.autocomplete-list.open{display:block}
+.autocomplete-list::-webkit-scrollbar{width:4px}
+.autocomplete-list::-webkit-scrollbar-thumb{background:rgba(255,111,163,.3);border-radius:2px}
+.ac-item{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;
+  transition:background .15s;border-bottom:1px solid rgba(255,111,163,.08)}
+.ac-item:last-child{border-bottom:none}.ac-item:hover,.ac-item.active{background:var(--sakura-dim)}
+.ac-img{width:58px;height:58px;border-radius:12px;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,111,163,.45)}
+.ac-img-placeholder{width:58px;height:58px;border-radius:12px;flex-shrink:0;
+  background:var(--sakura-dim);border:1px solid rgba(255,111,163,.2);display:flex;align-items:center;justify-content:center;font-size:26px}
+.ac-info{display:flex;flex-direction:column;gap:3px;min-width:0}
+.ac-name{font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ac-sub{font-size:11px;color:var(--petal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ac-anime{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ac-loading{padding:16px;text-align:center;color:var(--muted);font-size:13px}
+.modal-hint{font-size:11px;color:var(--muted);background:rgba(255,111,163,.04);
+  border:1px solid var(--border);border-radius:8px;padding:9px 13px;line-height:1.6}
+.modal-actions{display:flex;gap:10px}
+.btn-confirm{flex:1;padding:13px;border:none;border-radius:12px;font-family:'Noto Sans Thai',sans-serif;
+  font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;color:#fff;
+  background:linear-gradient(135deg,var(--sakura),var(--cosmic));box-shadow:0 4px 18px rgba(255,111,163,.35)}
+.btn-confirm:hover{box-shadow:0 6px 28px rgba(255,111,163,.55);transform:translateY(-1px)}
+.btn-cancel{padding:13px 20px;border:1px solid var(--border);border-radius:12px;background:transparent;
+  color:var(--muted);font-family:'Noto Sans Thai',sans-serif;font-size:14px;cursor:pointer;transition:all .2s}
+.btn-cancel:hover{border-color:rgba(255,111,163,.3);color:var(--text)}
+/* WIN */
+#winOverlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(4,2,14,.93);
+  backdrop-filter:blur(12px);flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:24px;gap:16px}
+#winOverlay.show{display:flex;animation:modalIn .4s ease}
+.win-icon{font-size:80px;animation:iconPop .6s ease}
+@keyframes iconPop{0%{transform:scale(0)rotate(-30deg)}70%{transform:scale(1.2)rotate(5deg)}100%{transform:scale(1)}}
+.win-big{font-family:'Cinzel Decorative',cursive;font-size:clamp(40px,9vw,72px);font-weight:900;line-height:1;
+  background:linear-gradient(140deg,#fff 0%,var(--petal) 45%,var(--sakura) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 38px var(--sakura-glow))}
+.win-score-grid{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.win-player-score{padding:14px 24px;border-radius:16px;border:1px solid var(--border);min-width:130px}
+.wps-name{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.wps-val{font-family:'Orbitron',monospace;font-size:28px;font-weight:900}
+.wps-p1 .wps-val{color:var(--p1)}.wps-p2 .wps-val{color:var(--sakura)}
+.win-sub{font-size:14px;color:var(--muted);max-width:380px;line-height:1.8}
+.win-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.w-btn{padding:13px 30px;border-radius:50px;font-family:'Noto Sans Thai',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+.w-btn.primary{background:linear-gradient(135deg,var(--sakura),var(--cosmic));border:none;color:#fff;box-shadow:0 6px 24px rgba(255,111,163,.4)}
+.w-btn.primary:hover{transform:translateY(-2px)}
+.w-btn.secondary{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.w-btn.secondary:hover{border-color:rgba(255,111,163,.3);color:var(--text)}
+.cf{position:fixed;top:-16px;z-index:210;pointer-events:none;animation:cfFall linear forwards}
+@keyframes cfFall{0%{opacity:1;transform:translateY(0)rotate(0)}50%{transform:translateY(55vh)rotate(380deg)}100%{opacity:0;transform:translateY(110vh)rotate(720deg)}}
+@media(max-width:520px){
+  nav{padding:14px 16px}
+  .grid-outer{grid-template-columns:56px repeat(3,1fr);gap:4px}
+  .col-header,.row-header{font-size:9px;padding:6px 4px}
+  .grid-cell{min-height:100px;border-radius:10px}
+  .start-btn{padding:14px 36px;font-size:13px}
+}
+</style>
+</head>
+<body>
+
+<div id="loadingOverlay">
+  <div class="spin"></div>
+  <div class="loading-txt">CONNECTING TO FIREBASE...</div>
+</div>
+
+<!-- NAME SETUP MODAL (first time only) -->
+<div id="nameSetupOverlay" style="display:none">
+  <div class="name-setup-box">
+    <div class="name-setup-icon">🌸</div>
+    <div class="name-setup-title">ยินดีต้อนรับ!</div>
+    <p class="name-setup-sub">ตั้งชื่อผู้เล่นของคุณ<br>ระบบจะจำชื่อนี้ไว้ให้เสมอ</p>
+    <input class="name-setup-input" id="nameSetupInput" type="text" maxlength="20" placeholder="ชื่อของคุณ..." autocomplete="off" spellcheck="false"/>
+    <button class="name-setup-btn" onclick="savePlayerName()">✨ เริ่มเล่น!</button>
+  </div>
+</div>
+
+<div class="orb" style="width:550px;height:550px;background:rgba(255,111,163,.07);top:-200px;right:-150px;animation-duration:16s;"></div>
+<div class="orb" style="width:450px;height:450px;background:rgba(192,132,252,.08);bottom:-130px;left:-130px;animation-duration:13s;animation-delay:4s;"></div>
+<canvas id="petals"></canvas>
+
+<!-- INPUT MODAL -->
+<div class="modal-overlay" id="inputModal">
+  <div class="modal">
+    <div class="modal-eyebrow">🌸 ตั้งชื่อตัวละคร</div>
+    <div id="modalTurnBadge" class="modal-turn-badge p1-badge" style="display:none">👤 ตา: ผู้เล่น 1</div>
+    <div class="modal-question">
+      <span class="q-row" id="qRow">—</span><span class="q-x">✕</span><span class="q-col" id="qCol">—</span>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="answer-field">
+      <div class="answer-label">ชื่อตัวละคร</div>
+      <div class="input-wrap">
+        <input class="answer-input" id="charInput" type="text" placeholder="พิมพ์ชื่อตัวละคร..." autocomplete="off" spellcheck="false"/>
+        <div class="autocomplete-list" id="acList"></div>
+      </div>
+      <input class="answer-series" id="seriesInput" type="text" placeholder="ชื่อเรื่อง (ไม่บังคับ)" autocomplete="off"/>
+    </div>
+    <div class="modal-hint" id="modalHint">🌸 ตั้งชื่อตัวละครที่ตรงกับทั้งสองหัวข้อพร้อมกัน</div>
+    <div class="modal-actions">
+      <button class="btn-confirm" onclick="confirmAnswer()">✓ ยืนยัน</button>
+      <button class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- WIN OVERLAY -->
+<div id="winOverlay">
+  <div class="win-icon" id="winIcon">🌸</div>
+  <div class="win-big" id="winBig">ชนะ!</div>
+  <div class="win-score-grid" id="winScoreGrid"></div>
+  <div class="win-sub" id="winSub"></div>
+  <div class="win-actions">
+    <button class="w-btn primary" onclick="rematch()">🔄 เล่นใหม่</button>
+    <button class="w-btn secondary" onclick="backToLobby()">🏠 เลือกหัวข้อ</button>
+    <button class="w-btn secondary" onclick="window.location.href='index.html'">← GameHub</button>
+  </div>
+</div>
+
+<div class="wrapper">
+  <nav>
+    <a class="nav-logo" href="index.html">
+      <div class="logo-cube">🌸</div>
+      <span class="logo-label">GAME HUB</span>
+    </a>
+    <div class="nav-right">
+      <span class="nav-pill">AnimeGrid</span>
+      <span class="nav-uid" id="navUid"></span>
+      <span style="font-size:11px;color:rgba(255,183,213,.5);font-family:'Orbitron',monospace;letter-spacing:.05em" id="navPlayerNameDisplay"></span>
+      <a class="back-btn" href="index.html">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>กลับ
+      </a>
+    </div>
+  </nav>
+
+  <!-- LOBBY -->
+  <div class="screen active" id="lobby">
+    <div class="lobby-inner">
+      <span class="lobby-eyebrow">🌸 Anime Character Grid</span>
+      <div class="lobby-title">AnimeGrid</div>
+      <p class="lobby-sub">กริด 3×3 — กรอกชื่อตัวละครที่ตรงกับ <strong style="color:#fff;">แถว × คอลัมน์</strong><br>
+      ใครได้ <strong style="color:var(--sakura);">3 ช่องติดกันก่อน ชนะ!</strong></p>
+
+      <div class="mode-section">
+        <div class="mode-label">เลือกโหมด</div>
+        <div class="mode-cards">
+          <div class="mode-card active" id="modeCard-solo" onclick="selectMode('solo')">
+            <div class="mode-icon">🎮</div>
+            <div class="mode-name">SOLO</div>
+            <div class="mode-desc">เล่นคนเดียว</div>
+          </div>
+          <div class="mode-card" id="modeCard-pvp" onclick="selectMode('pvp')">
+            <div class="mode-icon">⚔️</div>
+            <div class="mode-name">2 ผู้เล่น</div>
+            <div class="mode-desc">Online — sync จริงผ่าน Firebase</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROOM PANEL — แสดงเฉพาะโหมด 2P -->
+      <div class="room-panel" id="roomPanel" style="display:none">
+        <div class="room-panel-title">ห้องเกม</div>
+        <div style="display:flex;gap:8px;width:100%;">
+          <button class="room-tab active" id="tabCreate" onclick="switchRoomTab('create')">🏠 สร้างห้อง</button>
+          <button class="room-tab" id="tabJoin" onclick="switchRoomTab('join')">🚪 เข้าร่วมห้อง</button>
+        </div>
+
+        <!-- PANEL: สร้างห้อง -->
+        <div id="panelCreate" style="width:100%;display:flex;flex-direction:column;gap:10px;align-items:center;">
+          <!-- ชื่อดึงจาก localStorage อัตโนมัติ -->
+          <input type="hidden" id="myNameCreate"/>
+          <!-- เลือก pack ตรงนี้ (เฉพาะ host) -->
+          <div style="width:100%;display:flex;flex-direction:column;gap:8px;">
+            <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);">เลือกชุดหัวข้อ</div>
+            <div class="pack-grid" id="packGridRoom"></div>
+          </div>
+          <button class="room-btn create" style="width:100%;padding:14px;" onclick="createRoom()">✨ สร้างห้องใหม่</button>
+          <div class="room-code-display" id="roomCodeDisplay" style="display:none">
+            <div class="room-code-label">รหัสห้องของคุณ</div>
+            <div class="room-code-val" id="roomCodeVal">——</div>
+            <div class="room-code-hint">📋 แชร์รหัสนี้ให้เพื่อน</div>
+            <div class="waiting-box" id="waitingBox" style="display:none">
+              <div class="spin" style="width:28px;height:28px;border-width:2px;"></div>
+              <div style="font-size:12px;color:var(--muted);">รอผู้เล่น 2 เข้าห้อง<span class="dot-anim"><span>.</span><span>.</span><span>.</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL: เข้าห้อง -->
+        <div id="panelJoin" style="width:100%;display:none;flex-direction:column;gap:10px;align-items:center;">
+          <!-- ชื่อดึงจาก localStorage อัตโนมัติ -->
+          <input type="hidden" id="myNameJoin"/>
+          <div style="font-size:12px;color:var(--muted);text-align:center;">ใส่รหัสห้องที่เพื่อนแชร์ให้</div>
+          <div style="display:flex;gap:8px;width:100%;">
+            <input class="room-input" id="joinCodeInput" maxlength="6" placeholder="รหัส 6 ตัว"
+              style="flex:1;font-size:18px;letter-spacing:.2em;text-align:center;"
+              oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"/>
+            <button class="room-btn join" onclick="joinRoom()">เข้าห้อง</button>
+          </div>
+          <div id="joinMsg" style="font-size:12px;color:var(--muted);text-align:center;display:none;"></div>
+        </div>
+      </div>
+
+      <!-- SOLO pack + start -->
+      <div class="pack-section" id="soloPackSection">
+        <div class="pack-label">เลือกชุดหัวข้อ</div>
+        <div class="pack-grid" id="packGrid"></div>
+      </div>
+      <button class="start-btn" id="startBtn" onclick="startSolo()">🌸 เริ่มเล่น</button>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div class="screen" id="game">
+    <div class="game-inner">
+      <div class="turn-bar" id="turnBar" style="display:none">
+        <div class="player-bar p1-bar" id="p1Bar">
+          <div class="player-avatar">🔵</div>
+          <div class="player-info">
+            <div class="player-name" id="p1Name">ผู้เล่น 1</div>
+            <div class="player-score-row" id="p1ScoreDisplay">0</div>
+          </div>
+        </div>
+        <div class="turn-center">
+          <div class="vs-txt">VS</div>
+          <div class="turn-indicator" id="turnIndicatorText">ตาของ P1</div>
+        </div>
+        <div class="player-bar p2-bar" id="p2Bar">
+          <div class="player-avatar">🌸</div>
+          <div class="player-info">
+            <div class="player-name" id="p2Name">ผู้เล่น 2</div>
+            <div class="player-score-row" id="p2ScoreDisplay">0</div>
+          </div>
+        </div>
+      </div>
+      <div class="game-topbar" id="soloTopbar">
+        <div class="score-pill"><div class="score-label">คะแนน</div><div class="score-val" id="scoreVal">0</div></div>
+        <div class="progress-wrap">
+          <div class="progress-label">ความคืบหน้า <span id="progressText">0 / 9</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+        </div>
+        <div class="score-pill"><div class="score-label">ว่างเหลือ</div><div class="score-val" id="emptyCells">9</div></div>
+      </div>
+      <div class="game-cat-tag" id="gameCatTag"></div>
+      <div class="grid-outer" id="gridOuter"></div>
+      <div style="font-size:12px;color:var(--muted);text-align:center;margin-top:4px;">
+        🌸 คลิกช่อง <span style="color:var(--sakura);">+</span> เพื่อกรอกชื่อ · ได้ 3 ช่องติดกันก่อน = ชนะ!
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     🔥 FIREBASE — วาง config แล้วเปิดใช้งานได้เลย
+     ขั้นตอน:
+       1. ใส่ config ด้านล่างจาก Firebase Console ของคุณ ✅ (ทำแล้ว)
+       2. เปิด Authentication → Anonymous → Enable ✅ (ทำแล้ว)
+       3. สร้าง Realtime Database → test mode
+          แล้ว copy databaseURL มาใส่ใน firebaseConfig ด้านล่าง
+══════════════════════════════════════════════════════════════ -->
+<script type="module">
+
+import { initializeApp }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInAnonymously, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getDatabase, ref, set, get, update, onValue, remove }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+/* ─────────────────────────────────────────────────────
+   🔑  CONFIG  จากรูปที่ให้มา
+   ⚠️  ขั้นตอนสุดท้าย: ไปที่ Realtime Database ใน
+       Firebase Console แล้ว copy URL มาใส่ databaseURL
+       รูปแบบ: https://gamehub-48669-default-rtdb
+                .asia-southeast1.firebasedatabase.app
+───────────────────────────────────────────────────── */
+const firebaseConfig = {
+  apiKey:            "AIzaSyAphadHf8YqOO3a-foaO4I9BaNcEzUS2ys",
+  authDomain:        "gamehub-48669.firebaseapp.com",
+  projectId:         "gamehub-48669",
+  storageBucket:     "gamehub-48669.firebasestorage.app",
+  messagingSenderId: "456832450683",
+  appId:             "1:456832450683:web:ad289927a9a57a6439a2de",
+  // ✏️ แก้ URL นี้ตาม Realtime Database ของคุณ
+  databaseURL: "https://gamehub-48669-default-rtdb.asia-southeast1.firebasedatabase.app"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getDatabase(app);
+
+/* ── 1. Anonymous Login ── */
+let myUID = null;
+signInAnonymously(auth).catch(e => console.error('Auth error:', e));
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    myUID = user.uid;
+    document.getElementById('navUid').textContent = 'UID:' + myUID.slice(0,6);
+    document.getElementById('loadingOverlay').style.display = 'none';
+    console.log('✅ Firebase ready | UID:', myUID);
+    if (window.onAuthStateChanged_callback) window.onAuthStateChanged_callback();
+  }
+});
+
+/* ── 2. สร้างห้อง ── */
+window._fbCreateRoom = async (code, packKey, hostName) => {
+  await set(ref(db, `rooms/${code}`), {
+    pack:          packKey,
+    status:        'waiting',
+    currentPlayer: 0,
+    cells:         {},
+    scores:        { p1: 0, p2: 0 },
+    players: {
+      p1: { uid: myUID, name: hostName }
+    },
+    createdAt: Date.now()
+  });
+  console.log('🏠 Room created:', code);
+};
+
+/* ── 3. เข้าห้อง ── */
+window._fbJoinRoom = async (code, guestName) => {
+  const snap = await get(ref(db, `rooms/${code}`));
+  if (!snap.exists()) throw new Error('ไม่พบห้อง ' + code);
+  if (snap.val().players?.p2) throw new Error('ห้องเต็มแล้ว');
+  await update(ref(db, `rooms/${code}`), {
+    'players/p2': { uid: myUID, name: guestName },
+    status: 'playing'
+  });
+  console.log('🚪 Joined room:', code);
+};
+
+/* ── 4. ฟัง real-time update ── */
+window._fbListen = (code, cb) => {
+  onValue(ref(db, `rooms/${code}`), snap => {
+    if (snap.exists()) cb(snap.val());
+  });
+};
+
+/* ── 5. บันทึกการตอบ ── */
+window._fbSubmit = async (code, idx, cellData, nextPlayer, scores) => {
+  await update(ref(db, `rooms/${code}`), {
+    [`cells/${idx}`]: cellData,
+    currentPlayer:    nextPlayer,
+    scores:           scores
+  });
+};
+
+/* ── 6. ตั้ง status (done เมื่อจบเกม) ── */
+window._fbDone = async (code) => {
+  await update(ref(db, `rooms/${code}`), { status: 'done' });
+};
+
+/* ── 7. ลบห้อง ── */
+window._fbDeleteRoom = async (code) => {
+  try { await remove(ref(db, `rooms/${code}`)); console.log('🗑️ Room deleted:', code); }
+  catch(e) { console.warn('Delete room error:', e); }
+};
+
+/* ── 8. ออกจากห้อง (mark player offline) ── */
+window._fbLeaveRoom = async (code, role) => {
+  if (!code || !role) return;
+  try {
+    const snap = await get(ref(db, `rooms/${code}`));
+    if (!snap.exists()) return;
+    const data = snap.val();
+    // ถ้าเป็น host (p1) และยังไม่มี p2 → ลบห้องเลย
+    if (role === 'p1' && !data.players?.p2) {
+      await window._fbDeleteRoom(code); return;
+    }
+    // ถ้าเกมจบหรือ done → ลบห้อง
+    if (data.status === 'done' || data.status === 'waiting') {
+      await window._fbDeleteRoom(code); return;
+    }
+    // ระหว่างเกม: mark ว่าฝ่ายนี้ออกไปแล้ว
+    await update(ref(db, `rooms/${code}`), { [`players/${role}/left`]: true, status: 'abandoned' });
+  } catch(e) { console.warn('Leave room error:', e); }
+};
+
+/* ── 9. ตรวจสอบและลบห้องถ้าไม่มีคน ── */
+window._fbCleanRoomIfEmpty = async (code) => {
+  if (!code) return;
+  try {
+    const snap = await get(ref(db, `rooms/${code}`));
+    if (!snap.exists()) return;
+    const data = snap.val();
+    const p1left = data.players?.p1?.left;
+    const p2left = data.players?.p2?.left;
+    if (p1left && p2left) await window._fbDeleteRoom(code);
+  } catch(e) {}
+};
+
+window._getUID = () => myUID;
+
+</script>
+
+<!-- GAME LOGIC -->
+<script>
+/* ── PLAYER NAME (from gamehub) ── */
+const NAME_KEY = 'animegrid_player_name';
+let savedPlayerName = localStorage.getItem(NAME_KEY) || '';
+
+// ถ้าไม่มีชื่อ → redirect ไป gamehub ให้ตั้งชื่อก่อน
+if (!savedPlayerName) {
+  window.location.href = 'index.html';
+}
+
+function applyPlayerName() {
+  document.getElementById('myNameCreate').value = savedPlayerName;
+  document.getElementById('myNameJoin').value   = savedPlayerName;
+}
+
+// แสดงชื่อใน nav
+onAuthStateChanged_callback = () => {
+  applyPlayerName();
+  const el = document.getElementById('navPlayerNameDisplay');
+  if (el) el.textContent = savedPlayerName ? '👤 ' + savedPlayerName : '';
+};
+window.onAuthStateChanged_callback = onAuthStateChanged_callback;
+
+/* ── PACKS ── */
+const PACKS = {
+  classic:     { label:'⭐ คลาสสิก',  rows:['ตัวเอกหลัก (MC)','มีพลังพิเศษ','มีทีม / ปาร์ตี้'],          cols:['Shonen Jump','Studio Ghibli','ไม่มีพ่อแม่'] },
+  personality: { label:'💥 บุคลิก',   rows:['ขี้โมโห / ก้าวร้าว','ใจดี / เมตตา','เงียบ / มีความลับ'],    cols:['ผมสีพิเศษ','ใส่แว่น','สวมชุดนักเรียน'] },
+  power:       { label:'⚡ พลัง',      rows:['ใช้ดาบ / ใบมีด','ควบคุมไฟ / ธาตุ','ใช้กำลังกาย'],           cols:['เคยตาย/เกิดใหม่','พลังที่ซ่อนไว้','แข็งแกร่งสุดในเรื่อง'] },
+  world:       { label:'🌍 โลก',       rows:['โลกแฟนตาซี','โลกสมัยใหม่','โลกหลังหายนะ'],                 cols:['มาจากญี่ปุ่น/โลกจริง','ไม่ใช่มนุษย์','เป็นเด็ก / วัยรุ่น'] },
+  genre:       { label:'🎭 ประเภท',    rows:['จากซีรีส์ Action','จากซีรีส์ Romance','จากซีรีส์ Isekai'],  cols:['หน้าหล่อ / สวย','ฉลาด / วางแผนเก่ง','มักทำเรื่องตลก / ขำ'] },
+  hard:        { label:'💀 ยาก',       rows:['ตายในเรื่อง','เป็น villain','เป็นตัวสนับสนุน (support)'],    cols:['ชนะโดยไม่ใช้พลัง','มีสองบุคลิก','ชื่อเรื่องขึ้นต้นด้วย A-F'] },
+};
+const WIN_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+/* ── STATE ── */
+let gameMode = 'solo';
+let myRole   = null;   // 'p1' | 'p2'
+let roomCode = null;
+let pvpStarted = false;
+let selPack  = 'classic';
+let selAc    = null;
+let state = {
+  cells: Array(9).fill(null),
+  pack: null, activeCellIdx: null,
+  currentPlayer: 0, scores: [0,0],
+  startTime: null, winLine: null,
+  playerNames: ['ผู้เล่น 1','ผู้เล่น 2'],
+};
+
+/* ── รอ Firebase module ── */
+const waitFb = () => new Promise(res => {
+  const t = setInterval(() => { if (window._fbCreateRoom){ clearInterval(t); res(); } }, 100);
+});
+
+/* ── Cleanup เมื่อออกจากหน้า ── */
+function handlePageLeave() {
+  if (roomCode && myRole) {
+    // ใช้ sendBeacon หรือ sync XHR ไม่ได้กับ Firebase SDK
+    // ใช้ keepalive fetch ไม่ได้เช่นกัน — ใช้ navigator.sendBeacon กับ endpoint ไม่ได้
+    // วิธีที่ดีที่สุด: ตั้ง leave flag ล่วงหน้า
+    window._fbLeaveRoom && window._fbLeaveRoom(roomCode, myRole);
+  }
+}
+window.addEventListener('beforeunload', handlePageLeave);
+window.addEventListener('pagehide',     handlePageLeave);
+
+/* ══ MODE SELECT ══ */
+function selectMode(m) {
+  gameMode = m;
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('modeCard-'+m).classList.add('active');
+  document.getElementById('roomPanel').style.display        = m==='pvp' ? 'flex' : 'none';
+  document.getElementById('soloPackSection').style.display  = m==='pvp' ? 'none' : 'flex';
+  document.getElementById('startBtn').style.display         = m==='pvp' ? 'none' : 'block';
+}
+
+function switchRoomTab(tab) {
+  ['create','join'].forEach(t => {
+    document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('active', t===tab);
+    document.getElementById('panel'+t.charAt(0).toUpperCase()+t.slice(1)).style.display = t===tab ? 'flex' : 'none';
+  });
+}
+
+function generateCode() {
+  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:6}, ()=>c[Math.floor(Math.random()*c.length)]).join('');
+}
+
+/* ══ สร้างห้อง ══ */
+async function createRoom() {
+  await waitFb();
+  const name = document.getElementById('myNameCreate').value.trim() || 'ผู้เล่น 1';
+  roomCode = generateCode();
+  myRole   = 'p1';
+  pvpStarted = false;
+
+  await window._fbCreateRoom(roomCode, selPack, name);
+
+  document.getElementById('roomCodeVal').textContent = roomCode;
+  document.getElementById('roomCodeDisplay').style.display = 'block';
+  document.getElementById('waitingBox').style.display = 'flex';
+
+  // รอ P2 เข้า — Firebase จะ trigger เมื่อ status เปลี่ยนเป็น 'playing'
+  window._fbListen(roomCode, data => {
+    if (data.status === 'playing' && data.players?.p2 && !pvpStarted) {
+      document.getElementById('waitingBox').style.display = 'none';
+      _startPvp(data);
+    }
+  });
+}
+
+/* ══ เข้าห้อง ══ */
+async function joinRoom() {
+  await waitFb();
+  const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
+  const name = document.getElementById('myNameJoin').value.trim() || 'ผู้เล่น 2';
+  const msg  = document.getElementById('joinMsg');
+  pvpStarted = false;
+
+  if (code.length < 4) {
+    msg.style.display='block'; msg.style.color='var(--sakura)';
+    msg.textContent = '⚠️ ใส่รหัสอย่างน้อย 4 ตัวอักษร'; return;
+  }
+  try {
+    await window._fbJoinRoom(code, name);
+    roomCode = code;
+    myRole   = 'p2';
+    msg.style.display='block'; msg.style.color='var(--muted)';
+    msg.textContent = '✅ เข้าห้อง '+code+' สำเร็จ! กำลังโหลดเกม...';
+
+    // listen — เกมจะเริ่มทันที เพราะ joinRoom ตั้ง status='playing' แล้ว
+    window._fbListen(roomCode, data => {
+      if (data.status === 'playing' && !pvpStarted) _startPvp(data);
+      if (data.status === 'done')    _handleDone(data);
+    });
+  } catch(e) {
+    msg.style.display='block'; msg.style.color='var(--sakura)';
+    msg.textContent = '⚠️ '+e.message;
+  }
+}
+
+/* ══ เริ่ม PVP (ทั้งสองฝั่งเรียกจาก listener) ══ */
+function _startPvp(data) {
+  if (pvpStarted) return;
+  pvpStarted = true;
+
+  const p1 = data.players?.p1?.name || 'ผู้เล่น 1';
+  const p2 = data.players?.p2?.name || 'ผู้เล่น 2';
+
+  state = {
+    cells: Array(9).fill(null),
+    pack:  PACKS[data.pack] || PACKS.classic,
+    activeCellIdx: null,
+    currentPlayer: 0,
+    scores: [0, 0],
+    startTime: Date.now(),
+    winLine: null,
+    playerNames: [p1, p2],
+  };
+
+  document.getElementById('turnBar').style.display   = 'flex';
+  document.getElementById('soloTopbar').style.display = 'none';
+  document.getElementById('p1Name').textContent = p1;
+  document.getElementById('p2Name').textContent = p2;
+  showScreen('game');
+  renderGame();
+
+  // ── real-time listener: sync state จาก Firebase ──
+  window._fbListen(roomCode, fbData => {
+    if (!fbData) return;
+
+    // rebuild cells array จาก object { "0":{...}, "3":{...} }
+    const newCells = Array(9).fill(null);
+    if (fbData.cells) {
+      Object.entries(fbData.cells).forEach(([k,v]) => { newCells[parseInt(k)] = v; });
+    }
+    state.cells         = newCells;
+    state.currentPlayer = fbData.currentPlayer ?? 0;
+    state.scores        = [fbData.scores?.p1||0, fbData.scores?.p2||0];
+
+    if (fbData.status === 'abandoned') {
+      // อีกฝ่ายออกจากห้อง
+      window._fbCleanRoomIfEmpty && window._fbCleanRoomIfEmpty(roomCode);
+      document.getElementById('winIcon').textContent = '🏃';
+      document.getElementById('winBig').textContent  = 'คู่ต่อสู้ออก!';
+      document.getElementById('winScoreGrid').innerHTML = '';
+      document.getElementById('winSub').innerHTML = '👋 ผู้เล่นอีกฝั่งออกจากเกมแล้ว';
+      document.getElementById('winOverlay').classList.add('show');
+      return;
+    }
+    if (fbData.status === 'done' && !state.winLine) {
+      _handleDone(fbData); return;
+    }
+    renderGame(); updateBar();
+  });
+}
+
+function _handleDone(fbData) {
+  const newCells = Array(9).fill(null);
+  if (fbData.cells) Object.entries(fbData.cells).forEach(([k,v])=>{ newCells[parseInt(k)]=v; });
+  state.cells  = newCells;
+  state.scores = [fbData.scores?.p1||0, fbData.scores?.p2||0];
+
+  const wl0 = checkWinForPlayer(0);
+  const wl1 = checkWinForPlayer(1);
+  const wl   = wl0 || wl1;
+  if (wl) state.winLine = wl;
+  renderGame(); updateBar();
+  const winner = wl0?0 : wl1?1 : -1;
+  setTimeout(() => doWinPvp(winner, Math.round((Date.now()-state.startTime)/1000)), 600);
+}
+
+/* ══ SOLO ══ */
+function startSolo() {
+  state = {
+    cells: Array(9).fill(null), pack: PACKS[selPack],
+    activeCellIdx: null, currentPlayer: 0,
+    scores: [0,0], startTime: Date.now(), winLine: null,
+    playerNames: ['คุณ','—'],
+  };
+  document.getElementById('turnBar').style.display   = 'none';
+  document.getElementById('soloTopbar').style.display = 'flex';
+  showScreen('game'); renderGame();
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ══ CHECK WIN ══ */
+function checkWinForPlayer(p) {
+  for (const [a,b,c] of WIN_LINES)
+    if (state.cells[a]?.owner===p && state.cells[b]?.owner===p && state.cells[c]?.owner===p) return [a,b,c];
+  return null;
+}
+function checkWinSolo() {
+  for (const [a,b,c] of WIN_LINES)
+    if (state.cells[a] && state.cells[b] && state.cells[c]) return [a,b,c];
+  return null;
+}
+
+/* ══ RENDER ══ */
+function renderGame() {
+  const { pack, cells, winLine, currentPlayer } = state;
+  if (!pack) return;
+  const outer = document.getElementById('gridOuter');
+  outer.innerHTML = '';
+  document.getElementById('gameCatTag').textContent = pack.label;
+
+  outer.appendChild(document.createElement('div'));
+  pack.cols.forEach(c => {
+    const el = document.createElement('div'); el.className='col-header'; el.textContent=c; outer.appendChild(el);
+  });
+  pack.rows.forEach((row, r) => {
+    const rh = document.createElement('div'); rh.className='row-header'; rh.textContent=row; outer.appendChild(rh);
+    for (let c2=0; c2<3; c2++) {
+      const idx = r*3+c2, cell = cells[idx];
+      const el  = document.createElement('div'); el.className='grid-cell';
+
+      if (winLine?.includes(idx)) {
+        el.classList.add('win-glow');
+        el.classList.add((cell?.owner??0)===0 ? 'win-glow-p1':'win-glow-p2');
+      }
+      if (cell) {
+        el.classList.add('filled');
+        if (gameMode==='pvp') el.classList.add(cell.owner===0?'filled-p1':'filled-p2');
+        const bc = cell.owner===0?'badge-p1':'badge-p2';
+        const bt = cell.owner===0?'1':'2';
+        if (cell.img) {
+          // มีรูป: แสดงรูปเต็ม grid ไม่มีข้อความ
+          el.innerHTML = `<div class="cell-content" style="padding:0;">
+            <img class="cell-img" src="${cell.img}" onerror="this.parentElement.parentElement.innerHTML=buildNoImg(${JSON.stringify(esc(cell.char))},${JSON.stringify(esc(cell.series||''))},${JSON.stringify(bc)},${JSON.stringify(bt)},${gameMode==='pvp'})" loading="lazy">
+            ${gameMode==='pvp'?`<div class="cell-owner-badge ${bc}" style="position:absolute;top:5px;right:5px;z-index:3">P${bt}</div>`:''}
+            </div>
+            <div class="cell-bar ${gameMode==='pvp'?(cell.owner===0?'cell-bar-p1':'cell-bar-p2'):'cell-bar-p2'}"></div>`;
+        } else {
+          // ไม่มีรูป: แสดงชื่อตรงกลาง + กรอบกระจกขุ่น
+          el.innerHTML = `<div class="cell-noimg">
+            ${gameMode==='pvp'?`<div class="cell-owner-badge ${bc}" style="position:absolute;top:5px;right:5px">P${bt}</div>`:''}
+            <div class="cell-char">${esc(cell.char)}</div>
+            ${cell.series?`<div class="cell-series">${esc(cell.series)}</div>`:''}
+          </div>
+          <div class="cell-bar ${gameMode==='pvp'?(cell.owner===0?'cell-bar-p1':'cell-bar-p2'):'cell-bar-p2'}"></div>`;
+        }
+      } else if (!winLine) {
+        // PVP: blocked ถ้าไม่ใช่ตาเรา
+        const isMyTurn = gameMode!=='pvp' ||
+          (myRole==='p1' && currentPlayer===0) ||
+          (myRole==='p2' && currentPlayer===1);
+        if (isMyTurn) {
+          el.innerHTML = '<span class="cell-plus">+</span>';
+          el.onclick = () => openModal(idx);
+        } else {
+          el.classList.add('blocked');
+          el.innerHTML = '<span style="color:rgba(255,111,163,.1);font-size:22px">—</span>';
+        }
+      } else {
+        el.innerHTML = '<span style="color:rgba(255,111,163,.15);font-size:20px">×</span>';
+      }
+      outer.appendChild(el);
+    }
+  });
+  updateBar();
+  if (gameMode==='pvp') updateTurnBar();
+}
+
+function updateTurnBar() {
+  const cp = state.currentPlayer;
+  document.getElementById('p1Bar').classList.toggle('active-turn', cp===0);
+  document.getElementById('p2Bar').classList.toggle('active-turn', cp===1);
+  document.getElementById('turnIndicatorText').textContent = 'ตาของ '+(cp===0?state.playerNames[0]:state.playerNames[1]);
+  document.getElementById('p1ScoreDisplay').textContent = state.scores[0];
+  document.getElementById('p2ScoreDisplay').textContent = state.scores[1];
+}
+
+function updateBar() {
+  const f = state.cells.filter(Boolean).length;
+  document.getElementById('scoreVal').textContent    = state.scores[0];
+  document.getElementById('emptyCells').textContent  = 9-f;
+  document.getElementById('progressText').textContent = f+' / 9';
+  document.getElementById('progressFill').style.width = (f/9*100)+'%';
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* ══ MODAL ══ */
+function openModal(idx) {
+  const { pack, currentPlayer } = state;
+  const r=Math.floor(idx/3), c=idx%3;
+  state.activeCellIdx=idx; selAc=null;
+  document.getElementById('qRow').textContent = pack.rows[r];
+  document.getElementById('qCol').textContent = pack.cols[c];
+  document.getElementById('modalHint').innerHTML =
+    `🌸 ตัวละครที่เป็น <strong style="color:var(--sakura);">"${pack.rows[r]}"</strong> และ <strong style="color:var(--cosmic);">"${pack.cols[c]}"</strong>`;
+  const badge = document.getElementById('modalTurnBadge');
+  if (gameMode==='pvp') {
+    badge.style.display='flex';
+    badge.className='modal-turn-badge '+(currentPlayer===0?'p1-badge':'p2-badge');
+    badge.textContent='👤 ตา: '+state.playerNames[currentPlayer];
+  } else { badge.style.display='none'; }
+  const inp = document.getElementById('charInput');
+  inp.value=''; document.getElementById('seriesInput').value='';
+  inp.style.borderColor=''; inp.style.boxShadow=''; hideAc();
+  document.getElementById('inputModal').classList.add('open');
+  setTimeout(()=>inp.focus(), 80);
+}
+function closeModal() {
+  document.getElementById('inputModal').classList.remove('open');
+  hideAc(); state.activeCellIdx=null; selAc=null;
+}
+
+/* ══ AUTOCOMPLETE ══ */
+let acTimer=null, acIdx=-1;
+document.getElementById('charInput').addEventListener('input', e => {
+  selAc=null; const q=e.target.value.trim();
+  if (q.length<2){hideAc();return;}
+  clearTimeout(acTimer); acTimer=setTimeout(()=>doSearch(q), 370);
+});
+document.getElementById('charInput').addEventListener('keydown', e => {
+  const l=document.getElementById('acList');
+  const items=[...l.querySelectorAll('.ac-item')];
+  if(e.key==='ArrowDown'){e.preventDefault();acIdx=Math.min(acIdx+1,items.length-1);hlAc(items);}
+  else if(e.key==='ArrowUp'){e.preventDefault();acIdx=Math.max(acIdx-1,-1);hlAc(items);}
+  else if(e.key==='Enter'){if(acIdx>=0&&items[acIdx])items[acIdx].click();else{hideAc();confirmAnswer();}}
+  else if(e.key==='Escape'){if(l.classList.contains('open'))hideAc();else closeModal();}
+});
+function hlAc(items){items.forEach((x,i)=>x.classList.toggle('active',i===acIdx));if(acIdx>=0&&items[acIdx])items[acIdx].scrollIntoView({block:'nearest'});}
+async function doSearch(q) {
+  const l=document.getElementById('acList');
+  l.innerHTML='<div class="ac-loading">🌸 กำลังค้นหา...</div>'; l.classList.add('open'); acIdx=-1;
+  try {
+    const r=await fetch(`https://api.jikan.moe/v4/characters?q=${encodeURIComponent(q)}&limit=8&order_by=favorites&sort=desc`);
+    if(!r.ok) throw 0;
+    const d=await r.json(); showAc(d.data||[]);
+  } catch { l.innerHTML='<div class="ac-loading" style="color:rgba(255,111,163,.5)">⚠️ ค้นหาไม่ได้ชั่วคราว</div>'; }
+}
+function showAc(chars) {
+  const l=document.getElementById('acList');
+  if(!chars.length){l.innerHTML='<div class="ac-loading">ไม่พบตัวละคร</div>';return;}
+  l.innerHTML='';
+  chars.forEach(ch => {
+    const name=ch.name||'', kanji=ch.name_kanji||'';
+    const nicks=(ch.nicknames||[]).slice(0,2).join(', ');
+    const sub=[kanji,nicks].filter(Boolean).join(' · ');
+    const img=ch.images?.jpg?.image_url||ch.images?.webp?.image_url||'';
+    const anime=(ch.anime&&ch.anime[0])?ch.anime[0].anime?.title||'':'';
+    const item=document.createElement('div'); item.className='ac-item';
+    item.innerHTML=`
+      ${img?`<img class="ac-img" src="${img}" loading="lazy" onerror="this.style.display='none'">`:`<div class="ac-img-placeholder">🌸</div>`}
+      <div class="ac-info">
+        <div class="ac-name">${esc(name)}</div>
+        ${sub?`<div class="ac-sub">${esc(sub)}</div>`:''}
+        ${anime?`<div class="ac-anime">${esc(anime)}</div>`:''}
+      </div>`;
+    item.onclick=()=>{
+      document.getElementById('charInput').value=name;
+      if(anime) document.getElementById('seriesInput').value=anime;
+      selAc={name,anime,img}; hideAc(); document.getElementById('charInput').focus();
+    };
+    l.appendChild(item);
+  });
+}
+function hideAc(){const l=document.getElementById('acList');l.classList.remove('open');l.innerHTML='';acIdx=-1;}
+document.addEventListener('click', e=>{if(!e.target.closest('.input-wrap'))hideAc();});
+
+/* ══ CONFIRM ANSWER ══ */
+async function confirmAnswer() {
+  const val=document.getElementById('charInput').value.trim();
+  const inp=document.getElementById('charInput');
+  const shake=()=>{inp.style.borderColor='var(--sakura)';inp.style.boxShadow='0 0 14px rgba(255,111,163,.3)';setTimeout(()=>{inp.style.borderColor='';inp.style.boxShadow='';},700);};
+  if(!val){shake();return;}
+  if(state.cells.some(c=>c&&c.char.toLowerCase()===val.toLowerCase())){
+    document.getElementById('modalHint').innerHTML='⚠️ <strong style="color:var(--sakura);">ชื่อนี้ใช้ไปแล้ว</strong>';shake();return;
+  }
+  const idx    = state.activeCellIdx;
+  const owner  = state.currentPlayer;
+  const cellData = { char:val, series:document.getElementById('seriesInput').value.trim(), img:selAc?.img||null, owner };
+  state.cells[idx] = cellData;
+  state.scores[owner] += 10;
+  closeModal();
+
+  // pop animation
+  const outer = document.getElementById('gridOuter');
+  const el = outer.children[4 + Math.floor(idx/3)*4 + 1 + (idx%3)];
+  if(el){el.classList.add('filled-pop');setTimeout(()=>el.classList.remove('filled-pop'),400);}
+
+  if (gameMode==='pvp') {
+    /* ── เขียนลง Firebase — listener ทั้ง 2 ฝั่งจะ sync อัตโนมัติ ── */
+    const nextPlayer = 1 - owner;
+    const fbScores   = { p1: owner===0?state.scores[0]:state.scores[0], p2: owner===1?state.scores[1]:state.scores[1] };
+
+    const wl     = checkWinForPlayer(owner);
+    const isDraw = !wl && state.cells.every(Boolean);
+
+    await window._fbSubmit(roomCode, idx, cellData, nextPlayer, { p1:state.scores[0], p2:state.scores[1] });
+    if (wl || isDraw) await window._fbDone(roomCode);
+    // ไม่ต้อง render ตรงนี้ — listener จะ trigger renderGame() ให้เอง
+
+  } else {
+    /* ── SOLO ── */
+    const wl = checkWinSolo();
+    if (wl) {
+      state.winLine = wl;
+      const elapsed = Math.round((Date.now()-state.startTime)/1000);
+      const bonus   = Math.max(0,300-elapsed); state.scores[0]+=bonus;
+      renderGame(); updateBar();
+      setTimeout(()=>doWinSolo(elapsed,bonus,false), 600); return;
+    }
+    renderGame();
+    if (state.cells.every(Boolean)) {
+      const elapsed=Math.round((Date.now()-state.startTime)/1000);
+      const bonus=Math.max(0,300-elapsed); state.scores[0]+=bonus; updateBar();
+      setTimeout(()=>doWinSolo(elapsed,bonus,true), 400);
+    }
+  }
+}
+
+/* ══ WIN ══ */
+function doWinSolo(elapsed, bonus, isDraw) {
+  document.getElementById('winIcon').textContent = isDraw?'🤝':'🏆';
+  document.getElementById('winBig').textContent  = isDraw?'เสมอ!':'ชนะ!';
+  const t = elapsed<60?`${elapsed} วิ`:`${Math.floor(elapsed/60)} น. ${elapsed%60} วิ`;
+  document.getElementById('winScoreGrid').innerHTML =
+    `<div class="win-player-score wps-p2"><div class="wps-name">คะแนนรวม</div><div class="wps-val">${state.scores[0]}</div></div>`;
+  document.getElementById('winSub').innerHTML =
+    `${isDraw?'กรอกครบทั้ง 9 ช่อง':'🌸 ได้ 3 ช่องติดกัน!'} ใน <strong style="color:#fff;">${t}</strong><br>
+     <span style="color:var(--petal);">+10/ช่อง${bonus>0?` · โบนัส +${bonus} 🚀`:''}</span>`;
+  document.getElementById('winOverlay').classList.add('show');
+  if(!isDraw) confetti();
+}
+
+function doWinPvp(winner, elapsed) {
+  const names  = state.playerNames;
+  const isDraw = winner===-1;
+  document.getElementById('winIcon').textContent = isDraw?'🤝':'🏆';
+  document.getElementById('winBig').textContent  = isDraw?'เสมอ!':(names[winner]+' ชนะ!');
+  const t = elapsed<60?`${elapsed} วิ`:`${Math.floor(elapsed/60)} น. ${elapsed%60} วิ`;
+  document.getElementById('winScoreGrid').innerHTML = `
+    <div class="win-player-score wps-p1"><div class="wps-name">${esc(names[0])}</div><div class="wps-val">${state.scores[0]}</div></div>
+    <div class="win-player-score wps-p2"><div class="wps-name">${esc(names[1])}</div><div class="wps-val">${state.scores[1]}</div></div>`;
+  document.getElementById('winSub').innerHTML = isDraw?'กรอกครบทั้ง 9 ช่อง':`🌸 ได้ 3 ช่องติดกันใน ${t}`;
+  document.getElementById('winOverlay').classList.add('show');
+  if(!isDraw) confetti();
+}
+
+function confetti() {
+  const cs=['#ff6fa3','#ff9dc8','#c084fc','#f0abfc','#ffb7d5','#fff','#00d4ff'];
+  for(let i=0;i<80;i++) setTimeout(()=>{
+    const el=document.createElement('div'); el.className='cf';
+    el.style.cssText=`left:${Math.random()*100}vw;background:${cs[i%cs.length]};width:${5+Math.random()*9}px;height:${5+Math.random()*9}px;border-radius:50% 0 50% 0;animation-duration:${2+Math.random()*3}s`;
+    document.body.appendChild(el); setTimeout(()=>el.remove(),6000);
+  }, i*30);
+}
+
+function rematch() {
+  document.getElementById('winOverlay').classList.remove('show');
+  pvpStarted=false;
+  if(gameMode==='pvp') {
+    if (roomCode) { window._fbDeleteRoom && window._fbDeleteRoom(roomCode); roomCode = null; }
+    showScreen('lobby');
+  } else {
+    state={...state,cells:Array(9).fill(null),scores:[0,0],startTime:Date.now(),winLine:null};
+    renderGame();
+  }
+}
+function backToLobby() {
+  document.getElementById('winOverlay').classList.remove('show');
+  if (roomCode && gameMode === 'pvp') {
+    window._fbDeleteRoom && window._fbDeleteRoom(roomCode);
+    roomCode = null;
+  }
+  pvpStarted = false; showScreen('lobby');
+}
+
+/* ══ PACK SELECTOR ══ */
+function buildPacks() {
+  ['packGrid','packGridRoom'].forEach(id=>{
+    const g=document.getElementById(id); if(!g) return;
+    g.innerHTML='';
+    Object.keys(PACKS).forEach(k=>{
+      const b=document.createElement('button');
+      b.className='pack-btn'+(k===selPack?' active':''); b.textContent=PACKS[k].label;
+      b.onclick=()=>{selPack=k;document.querySelectorAll('.pack-btn').forEach(x=>x.classList.remove('active'));
+        document.querySelectorAll('.pack-btn').forEach(x=>{if(x.textContent===PACKS[k].label)x.classList.add('active');});};
+      g.appendChild(b);
+    });
+  });
+}
+buildPacks();
+
+/* ══ CANVAS ══ */
+const cv=document.getElementById('petals'),cx=cv.getContext('2d');
+let W,H;
+function rsz(){W=cv.width=innerWidth;H=cv.height=innerHeight;}
+rsz(); addEventListener('resize',rsz);
+const stars=Array.from({length:150},()=>({x:Math.random()*3000,y:Math.random()*2000,r:Math.random()*.9+.1,a:Math.random()*.7+.1,t:Math.random()*Math.PI*2}));
+const mkP=()=>({x:Math.random()*(innerWidth||1400),y:-Math.random()*200,sz:Math.random()*5+3,sp:Math.random()*.6+.25,dr:Math.random()*.35-.17,rt:Math.random()*Math.PI*2,rs:(Math.random()-.5)*.04,al:Math.random()*.45+.2,cl:['#ff6fa3','#ffb7d5','#f0abfc','#ff9dc8','#e879a0'][Math.floor(Math.random()*5)]});
+const pts=Array.from({length:22},mkP); let fr=0;
+function draw(){
+  cx.clearRect(0,0,W,H); fr++;
+  stars.forEach(s=>{s.t+=.018;const a=s.a*(.55+.45*Math.sin(s.t));cx.beginPath();cx.arc(s.x%W,s.y%H,s.r,0,Math.PI*2);cx.fillStyle=`rgba(255,183,213,${a})`;cx.fill();});
+  pts.forEach(p=>{p.y+=p.sp;p.x+=p.dr+Math.sin(fr*.012+p.rt)*.35;p.rt+=p.rs;if(p.y>H+20)Object.assign(p,mkP(),{x:Math.random()*W,y:-20});cx.save();cx.translate(p.x,p.y);cx.rotate(p.rt);cx.globalAlpha=p.al;cx.beginPath();cx.ellipse(0,0,p.sz,p.sz*.58,0,0,Math.PI*2);cx.fillStyle=p.cl;cx.fill();cx.restore();});
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>
