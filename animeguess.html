@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f0900">
 <title>AnimeGuess</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Sarabun:wght@300;400;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
   html,body{scrollbar-width:none;-ms-overflow-style:none;}
@@ -279,11 +282,122 @@ nav {
 }
 .btn-outline:hover { border-color:rgba(255,255,255,.25); color:var(--text); }
 
+.mode-tog {
+  flex:1; padding:8px 14px; border-radius:10px;
+  border:1px solid rgba(200,100,30,.2); background:rgba(200,100,30,.05);
+  color:var(--muted); font-family:'Sarabun',sans-serif; font-size:13px; font-weight:600;
+  cursor:pointer; transition:all .2s;
+}
+.mode-tog.active {
+  background:rgba(200,100,30,.18); border-color:rgba(230,130,40,.55); color:var(--gold);
+  box-shadow:0 0 12px rgba(200,100,30,.15);
+}
+
 @media(max-width:480px){
   nav{padding:12px 16px;}
   .ans-name{font-size:17px;}
   .ans-img,.ans-nopic{width:64px;height:64px;}
 }
+
+/* ── HINT SYSTEM ── */
+.hint-btn {
+  width:100%; max-width:580px;
+  padding:13px 20px; border-radius:14px; border:1.5px solid rgba(100,180,255,.3);
+  background:rgba(100,180,255,.06); color:rgba(140,210,255,.85);
+  font-family:'Sarabun',sans-serif; font-size:14px; font-weight:700;
+  cursor:pointer; transition:all .25s; display:flex; align-items:center; justify-content:center; gap:8px;
+  letter-spacing:.03em;
+}
+.hint-btn:hover:not(:disabled) { background:rgba(100,180,255,.14); border-color:rgba(100,180,255,.55); transform:translateY(-2px); box-shadow:0 6px 24px rgba(80,160,255,.18); }
+.hint-btn:disabled { opacity:.38; cursor:default; transform:none; }
+
+.hint-list {
+  width:100%; max-width:580px; display:flex; flex-direction:column; gap:8px;
+}
+.hint-item {
+  padding:11px 16px; border-radius:12px;
+  background:rgba(100,180,255,.07); border:1px solid rgba(100,180,255,.22);
+  font-size:13px; color:var(--text); line-height:1.5;
+  animation: hintPop .4s cubic-bezier(.34,1.56,.64,1) both;
+  position:relative;
+}
+.hint-item::before { content:'💡'; margin-right:8px; }
+.hint-num {
+  font-size:9px; letter-spacing:.3em; text-transform:uppercase;
+  color:rgba(100,180,255,.5); margin-bottom:3px;
+}
+@keyframes hintPop {
+  from { opacity:0; transform:translateY(12px) scale(.95); }
+  to   { opacity:1; transform:none; }
+}
+
+/* popup overlay ที่ฝั่งตรงข้ามเห็น */
+#hintPopup {
+  display:none; position:fixed; inset:0; z-index:800;
+  background:rgba(0,0,0,.75); backdrop-filter:blur(8px);
+  align-items:center; justify-content:center; padding:20px;
+}
+#hintPopup.open { display:flex; }
+.hint-popup-box {
+  width:100%; max-width:420px;
+  background:linear-gradient(145deg,#0d0800,#160d00);
+  border:1.5px solid rgba(100,180,255,.35); border-radius:22px;
+  padding:28px 24px; display:flex; flex-direction:column; gap:16px;
+  box-shadow:0 24px 64px rgba(0,0,0,.9), 0 0 0 1px rgba(100,180,255,.08);
+  animation: popBoxIn .35s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes popBoxIn {
+  from { opacity:0; transform:scale(.88) translateY(20px); }
+  to   { opacity:1; transform:none; }
+}
+.hint-popup-title {
+  font-family:'Cinzel Decorative',cursive; font-size:16px; text-align:center;
+  background:linear-gradient(135deg,rgba(140,210,255,1),rgba(80,160,255,1));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.hint-popup-sub { font-size:13px; color:var(--muted); text-align:center; line-height:1.7; }
+.hint-popup-who {
+  padding:10px 16px; border-radius:10px;
+  background:rgba(100,180,255,.08); border:1px solid rgba(100,180,255,.2);
+  font-size:13px; color:rgba(140,210,255,.9); text-align:center;
+}
+.hint-textarea {
+  width:100%; min-height:90px; padding:13px 15px;
+  background:rgba(255,255,255,.04); border:1px solid rgba(100,180,255,.25);
+  border-radius:12px; color:var(--text); font-family:'Sarabun',sans-serif;
+  font-size:15px; line-height:1.6; resize:none; outline:none;
+  transition:border-color .2s, box-shadow .2s;
+}
+.hint-textarea:focus { border-color:rgba(100,180,255,.6); box-shadow:0 0 14px rgba(80,160,255,.2); }
+.hint-textarea::placeholder { color:rgba(255,255,255,.2); font-size:13px; }
+.hint-send-btn {
+  padding:13px; border:none; border-radius:12px;
+  background:linear-gradient(135deg,rgba(80,160,255,1),rgba(40,100,220,1));
+  color:#fff; font-family:'Sarabun',sans-serif; font-size:14px; font-weight:700;
+  cursor:pointer; transition:all .2s; box-shadow:0 4px 20px rgba(60,130,255,.35);
+}
+.hint-send-btn:hover { transform:translateY(-2px); box-shadow:0 7px 28px rgba(60,130,255,.5); }
+.hint-send-btn:disabled { opacity:.4; cursor:default; transform:none; }
+.hint-dismiss-btn {
+  padding:10px; border:1px solid rgba(255,255,255,.1); border-radius:12px;
+  background:transparent; color:var(--muted); font-family:'Sarabun',sans-serif;
+  font-size:13px; cursor:pointer; transition:all .2s;
+}
+.hint-dismiss-btn:hover { color:var(--text); border-color:rgba(255,255,255,.2); }
+
+/* badge แสดงว่ามีคนขอ hint */
+.hint-request-banner {
+  display:none; width:100%; max-width:580px; padding:12px 18px;
+  border-radius:13px; border:1.5px solid rgba(100,180,255,.45);
+  background:rgba(80,160,255,.1); color:rgba(140,210,255,.9);
+  font-size:13px; font-weight:600; text-align:center; animation:hintPop .4s both;
+  cursor:pointer; transition:all .2s;
+}
+.hint-request-banner:hover { background:rgba(80,160,255,.18); }
+
+/* pulse dot */
+.hint-pulse { display:inline-block; width:8px; height:8px; border-radius:50%; background:rgba(100,200,255,1); margin-right:6px; animation:pulseDot 1.2s ease infinite; }
+@keyframes pulseDot { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.5);opacity:.6} }
 </style>
 </head>
 <body>
@@ -352,6 +466,10 @@ nav {
 
     <div class="card">
       <div class="card-label">🔍 โจทย์ของคุณ</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <button id="modeAnime" class="mode-tog active" onclick="setSearchMode('anime')">🌸 อนิเมะ</button>
+        <button id="modeMovie" class="mode-tog" onclick="setSearchMode('movie')">🎬 หนัง</button>
+      </div>
       <div class="ac-wrap">
         <input class="inp" id="answerInput" type="text" maxlength="80"
           placeholder="พิมพ์ชื่ออนิเมะหรือตัวละคร…" autocomplete="off" spellcheck="false"/>
@@ -407,6 +525,19 @@ nav {
       ⏳ รอฝั่งตรงข้ามเฉลย...
     </div>
 
+    <!-- banner แสดงเมื่อฝั่งตรงข้ามขอ hint -->
+    <div class="hint-request-banner" id="hintRequestBanner" onclick="openHintPopup()">
+      <span class="hint-pulse"></span> <span id="hintRequesterName">เพื่อน</span> ขอคำใบ้! — แตะเพื่อพิมพ์ให้เขา
+    </div>
+
+    <!-- ปุ่มขอ hint -->
+    <button class="hint-btn" id="hintBtn" onclick="requestHint()">
+      💡 ขอคำใบ้จากอีกฝั่ง
+    </button>
+
+    <!-- กล่องแสดง hint ที่ได้รับ -->
+    <div class="hint-list" id="hintList" style="display:none"></div>
+
     <!-- ตัวละครที่ฝั่งตรงข้ามเฉลยแล้ว แสดงทันที -->
     <div id="oppRevealCard" style="display:none;width:100%;max-width:480px;margin-top:18px;"></div>
 
@@ -436,7 +567,17 @@ nav {
 
 </div>
 
-<!-- ═══════ FIREBASE ═══════ -->
+<!-- ═══════ HINT POPUP (ฝั่งที่ถูกขอ hint จะเห็น) ═══════ -->
+<div id="hintPopup">
+  <div class="hint-popup-box">
+    <div class="hint-popup-title">💡 คำใบ้</div>
+    <div class="hint-popup-sub">อีกฝั่งขอคำใบ้จากคุณ — พิมพ์อะไรก็ได้ที่ช่วยให้เขาเดาได้</div>
+    <div class="hint-popup-who" id="hintPopupWho">เขากำลังรอคำใบ้จากคุณ…</div>
+    <textarea class="hint-textarea" id="hintTextarea" placeholder="เช่น: ผมสีทอง, เป็นตัวเอกของเรื่อง, ออกฉายปี 2020…" maxlength="120"></textarea>
+    <button class="hint-send-btn" id="hintSendBtn" onclick="sendHint()">📨 ส่งคำใบ้</button>
+    <button class="hint-dismiss-btn" onclick="closeHintPopup()">ข้ามก่อน</button>
+  </div>
+</div>
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import{getAuth,signInAnonymously,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
@@ -477,9 +618,18 @@ window._fb={
     await update(r(code),{[`setup/${role}`]:{ans,img:img||'',anime:anime||'',ready:true}});
   },
   reveal:async(code,role)=>update(r(code),{[`setup/${role}/revealed`]:true}),
-  reset:async(code)=>update(r(code),{status:'setup',setup:{},revealedAt:null}),
+  reset:async(code)=>update(r(code),{status:'setup',setup:{},revealedAt:null,hints:{}}),
   listen:(code,cb)=>onValue(r(code),s=>{if(s.exists())cb(s.val());}),
   update:async(code,d)=>update(r(code),d),
+  /* HINT: requesterRole = คนขอ hint, targetRole = คนตอบ hint */
+  requestHint:async(code,requesterRole)=>update(r(code),{[`hints/${requesterRole}/pending`]:true,[`hints/${requesterRole}/ts`]:Date.now()}),
+  sendHint:async(code,requesterRole,text)=>{
+    /* เพิ่ม hint เข้า array และ clear pending */
+    const s=await get(r(code));
+    const existing=s.val()?.hints?.[requesterRole]?.items||[];
+    existing.push(text);
+    await update(r(code),{[`hints/${requesterRole}/items`]:existing,[`hints/${requesterRole}/pending`]:false});
+  },
 };
 </script>
 
@@ -560,8 +710,95 @@ function listenRoom(){
     if(bothRevealed&&cur==='answers')updateAnswers(d);
     // Play again reset — p1 cleared setup
     if(st==='setup'&&d.players?.p1&&d.players?.p2&&!d.setup?.p1&&cur!=='setup'&&cur!=='lobby')goSetupFresh(d);
+
+    // ── HINT logic ──
+    if(cur==='game') handleHintUpdate(d);
   });
 }
+
+/* ── HINT STATE ── */
+let _lastHintCount=0;
+let _hintPending=false;
+
+function handleHintUpdate(d){
+  const oppRole=role==='p1'?'p2':'p1';
+  const myHintData=d.hints?.[role]||{};   // ข้อมูล hint ที่เราขอ (items ที่ได้รับ)
+  const oppHintData=d.hints?.[oppRole]||{}; // ข้อมูล hint ที่ฝั่งตรงข้ามขอ (pending = เราต้องตอบ)
+
+  // 1) อีกฝั่งขอ hint → แสดง banner ให้เราตอบ
+  const oppPending=oppHintData.pending===true;
+  const banner=document.getElementById('hintRequestBanner');
+  const oppName=role==='p1'?(d.players?.p2?.name||'P2'):(d.players?.p1?.name||'P1');
+  if(oppPending){
+    document.getElementById('hintRequesterName').textContent=oppName;
+    banner.style.display='block';
+    _hintPending=true;
+  } else {
+    banner.style.display='none';
+    if(_hintPending){ closeHintPopup(); _hintPending=false; }
+  }
+
+  // 2) เราได้รับ hint ใหม่ → แสดงในกล่อง
+  const items=myHintData.items||[];
+  if(items.length>_lastHintCount){
+    renderHints(items, oppName);
+    _lastHintCount=items.length;
+    // enable ปุ่มขอใหม่ได้ (pending ถูก clear แล้ว)
+    document.getElementById('hintBtn').disabled=false;
+    document.getElementById('hintBtn').textContent='💡 ขอคำใบ้อีกครั้ง';
+  }
+}
+
+function renderHints(items, fromName){
+  const list=document.getElementById('hintList');
+  list.style.display='flex';
+  list.innerHTML='';
+  items.forEach((txt,i)=>{
+    const div=document.createElement('div');
+    div.className='hint-item';
+    div.innerHTML=`<div class="hint-num">คำใบ้จาก ${esc(fromName||'เพื่อน')} #${i+1}</div>${esc(txt)}`;
+    list.appendChild(div);
+  });
+  // scroll to newest
+  list.lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+async function requestHint(){
+  const btn=document.getElementById('hintBtn');
+  btn.disabled=true;
+  btn.textContent='⏳ รอคำใบ้…';
+  await _fb.requestHint(code,role);
+}
+
+function openHintPopup(){
+  const oppRole=role==='p1'?'p2':'p1';
+  // ชื่อคนขอ = ฝั่งตรงข้าม
+  document.getElementById('hintPopup').classList.add('open');
+  document.getElementById('hintTextarea').value='';
+  document.getElementById('hintTextarea').focus();
+}
+
+function closeHintPopup(){
+  document.getElementById('hintPopup').classList.remove('open');
+}
+
+async function sendHint(){
+  const txt=document.getElementById('hintTextarea').value.trim();
+  if(!txt)return;
+  const oppRole=role==='p1'?'p2':'p1';
+  const sendBtn=document.getElementById('hintSendBtn');
+  sendBtn.disabled=true; sendBtn.textContent='กำลังส่ง…';
+  await _fb.sendHint(code, oppRole, txt);
+  closeHintPopup();
+  sendBtn.disabled=false; sendBtn.textContent='📨 ส่งคำใบ้';
+  // hide banner
+  document.getElementById('hintRequestBanner').style.display='none';
+}
+
+// ปิด popup เมื่อกดนอกกล่อง
+document.getElementById('hintPopup').addEventListener('click', e=>{
+  if(e.target===document.getElementById('hintPopup')) closeHintPopup();
+});
 
 /* ── SETUP ── */
 function goSetup(d){
@@ -583,6 +820,14 @@ function goSetupFresh(d){
   document.getElementById('setupBtn').textContent='🌟 ยืนยันโจทย์';
   document.getElementById('setupWaiting').style.display='none';
   document.getElementById('readyBadge').style.display='none';
+  // reset hint state
+  _lastHintCount=0; _hintPending=false;
+  document.getElementById('hintList').style.display='none';
+  document.getElementById('hintList').innerHTML='';
+  document.getElementById('hintBtn').disabled=false;
+  document.getElementById('hintBtn').textContent='💡 ขอคำใบ้จากอีกฝั่ง';
+  document.getElementById('hintRequestBanner').style.display='none';
+  closeHintPopup();
   goSetup(d);
 }
 
@@ -728,8 +973,19 @@ window.addEventListener('beforeunload',()=>{ if(code)_fb?.update(code,{status:'a
 <!-- ═══════ AUTOCOMPLETE ═══════ -->
 <script>
 let acT=null,acI=-1;
+let searchMode='anime';
+const TMDB_KEY='00af15d87f33add84d1b9c572dff641b';
 const aIn=document.getElementById('answerInput');
 const aLi=document.getElementById('acList');
+
+function setSearchMode(m){
+  searchMode=m;
+  document.getElementById('modeAnime').classList.toggle('active',m==='anime');
+  document.getElementById('modeMovie').classList.toggle('active',m==='movie');
+  aIn.placeholder=m==='movie'?'พิมพ์ชื่อหนังหรือนักแสดง…':'พิมพ์ชื่ออนิเมะหรือตัวละคร…';
+  aIn.value='';window._selChar=null;hideAc();
+  document.getElementById('selPrev').style.display='none';
+}
 
 aIn.addEventListener('input',e=>{
   window._selChar=null;
@@ -746,19 +1002,61 @@ aIn.addEventListener('keydown',e=>{
 });
 document.addEventListener('click',e=>{if(!e.target.closest('.ac-wrap'))hideAc();});
 function hlAc(it){it.forEach((x,i)=>x.classList.toggle('hl',i===acI));if(acI>=0&&it[acI])it[acI].scrollIntoView({block:'nearest'});}
-
 function e2(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 
 async function doSearch(q){
-  aLi.innerHTML='<div class="ac-load">🎭 กำลังค้นหา…</div>';
+  aLi.innerHTML=`<div class="ac-load">${searchMode==='movie'?'🎬':'🎭'} กำลังค้นหา…</div>`;
   aLi.classList.add('open');acI=-1;
   try{
-    const[cr,ar]=await Promise.all([
-      fetch(`https://api.jikan.moe/v4/characters?q=${encodeURIComponent(q)}&limit=5&order_by=favorites&sort=desc`).then(r=>r.ok?r.json():null).catch(()=>null),
-      fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(q)}&limit=4&order_by=popularity&sort=asc`).then(r=>r.ok?r.json():null).catch(()=>null)
-    ]);
-    renderAc(cr?.data||[],ar?.data||[]);
+    if(searchMode==='movie'){
+      await doSearchMovie(q);
+    } else {
+      const[cr,ar]=await Promise.all([
+        fetch(`https://api.jikan.moe/v4/characters?q=${encodeURIComponent(q)}&limit=5&order_by=favorites&sort=desc`).then(r=>r.ok?r.json():null).catch(()=>null),
+        fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(q)}&limit=4&order_by=popularity&sort=asc`).then(r=>r.ok?r.json():null).catch(()=>null)
+      ]);
+      renderAc(cr?.data||[],ar?.data||[]);
+    }
   }catch{aLi.innerHTML='<div class="ac-load" style="color:rgba(245,200,66,.4)">⚠️ ค้นหาไม่ได้ชั่วคราว</div>';}
+}
+
+async function doSearchMovie(q){
+  try{
+    const[pRes,mRes]=await Promise.all([
+      fetch(`https://api.themoviedb.org/3/search/person?api_key=${TMDB_KEY}&query=${encodeURIComponent(q)}&language=en-US&page=1`).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(q)}&language=en-US&page=1`).then(r=>r.ok?r.json():null).catch(()=>null)
+    ]);
+    const people=(pRes?.results||[]).slice(0,5);
+    const movies=(mRes?.results||[]).slice(0,4);
+    if(!people.length&&!movies.length){aLi.innerHTML='<div class="ac-load">ไม่พบผลลัพธ์</div>';return;}
+    aLi.innerHTML='';
+    if(people.length){
+      const h=document.createElement('div');h.className='ac-head';h.textContent='🎭 นักแสดง / ตัวละคร';aLi.appendChild(h);
+      people.forEach(p=>{
+        const name=p.name||'';
+        const img=p.profile_path?`https://image.tmdb.org/t/p/w92${p.profile_path}`:'';
+        const movie=(p.known_for||[]).map(k=>k.title||k.name||'').filter(Boolean).slice(0,1).join('')||'';
+        const it=document.createElement('div');it.className='ac-item';
+        it.innerHTML=(img?`<img class="ac-img" src="${e2(img)}" loading="lazy" onerror="this.style.display='none'">`:`<div class="ac-nopic">🎬</div>`)+
+          `<div class="ac-info"><div class="ac-name">${e2(name)}</div>${movie?`<div class="ac-meta">🎬 ${e2(movie)}</div>`:''}</div>`;
+        it.onclick=()=>{aIn.value=name;window._selChar={name,img,anime:movie};showPrev(name,img,movie);hideAc();};
+        aLi.appendChild(it);
+      });
+    }
+    if(movies.length){
+      const h=document.createElement('div');h.className='ac-head';h.textContent='🎥 หนัง';aLi.appendChild(h);
+      movies.forEach(m=>{
+        const title=m.title||m.original_title||'';
+        const img=m.poster_path?`https://image.tmdb.org/t/p/w92${m.poster_path}`:'';
+        const year=m.release_date?m.release_date.slice(0,4):'';
+        const it=document.createElement('div');it.className='ac-item';
+        it.innerHTML=(img?`<img class="ac-img" src="${e2(img)}" loading="lazy" onerror="this.style.display='none'">`:`<div class="ac-nopic">🎥</div>`)+
+          `<div class="ac-info"><div class="ac-name">${e2(title)}</div>${year?`<div class="ac-sub">${year}</div>`:''}</div>`;
+        it.onclick=()=>{aIn.value=title;window._selChar={name:title,img,anime:title+(year?' ('+year+')':'')};showPrev(title,img,year?'('+year+')':'');hideAc();};
+        aLi.appendChild(it);
+      });
+    }
+  }catch(err){console.error(err);aLi.innerHTML='<div class="ac-load" style="color:rgba(245,200,66,.4)">⚠️ ค้นหาไม่ได้ชั่วคราว</div>';}
 }
 
 function renderAc(chars,animes){
@@ -855,34 +1153,54 @@ function drawMaple(lx,ly,sz,rot,alpha,pal,tilt){
   cx.fill();
   cx.restore();
 
-  // --- เส้นเอ็นใบ ---
+  // --- เส้นเอ็นใบ สไตล์อนิเมะ ---
   cx.save();
-  cx.strokeStyle='rgba(0,0,0,0.28)';
-  cx.lineWidth=0.055;
   cx.lineCap='round';
-  // เส้นกลาง
-  cx.beginPath();cx.moveTo(0,0.95);cx.lineTo(0,-1.15);cx.stroke();
-  // เส้นแขนง
-  [[0,-0.25,1.1,-0.35],[0,-0.25,-1.1,-0.35],
-   [0.08,0.1,0.85,0.55],[-0.08,0.1,-0.85,0.55]].forEach(([x1,y1,x2,y2])=>{
+
+  // เส้นขอบนอกใบ (outline อนิเมะ)
+  leafPath(cx);
+  cx.strokeStyle='rgba(30,5,0,0.55)';
+  cx.lineWidth=0.09;
+  cx.stroke();
+
+  // เส้นกลางหลัก หนาชัด
+  cx.lineWidth=0.07;
+  cx.strokeStyle='rgba(20,3,0,0.65)';
+  cx.beginPath();cx.moveTo(0,0.72);cx.lineTo(0,-1.12);cx.stroke();
+
+  // แสงบนเส้นกลาง
+  cx.lineWidth=0.025;
+  cx.strokeStyle='rgba(255,180,80,0.22)';
+  cx.beginPath();cx.moveTo(-0.012,0.72);cx.lineTo(-0.012,-1.12);cx.stroke();
+
+  // เส้นแขนงหลัก เส้นตรงคมแบบอนิเมะ
+  cx.lineWidth=0.06;
+  cx.strokeStyle='rgba(20,3,0,0.55)';
+  [[-0.02,-0.22,1.05,-0.32],[-0.02,-0.22,-1.05,-0.32],
+   [0.06,0.08,0.80,0.50],[-0.06,0.08,-0.80,0.50]].forEach(([x1,y1,x2,y2])=>{
     cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
   });
+
   // เส้นแขนงย่อย
   cx.lineWidth=0.038;
-  cx.strokeStyle='rgba(0,0,0,0.16)';
-  [[0,-0.65,0.6,-0.9],[0,-0.65,-0.6,-0.9],
-   [1.1,-0.35,1.35,0.05],[-1.1,-0.35,-1.35,0.05]].forEach(([x1,y1,x2,y2])=>{
+  cx.strokeStyle='rgba(20,3,0,0.35)';
+  [[-0.01,-0.62,0.55,-0.88],[-0.01,-0.62,-0.55,-0.88],
+   [1.05,-0.32,1.28,0.02],[-1.05,-0.32,-1.28,0.02],
+   [0.06,0.08,0.30,-0.55],[-0.06,0.08,-0.30,-0.55]].forEach(([x1,y1,x2,y2])=>{
     cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
   });
   cx.restore();
 
-  // --- ก้านใบ ---
+  // --- ก้านใบสั้นลง ---
   cx.save();
   cx.globalAlpha=alpha;
-  cx.strokeStyle= '#6B3010';
-  cx.lineWidth=0.1;
+  cx.strokeStyle='#5a2508';
+  cx.lineWidth=0.09;
   cx.lineCap='round';
-  cx.beginPath();cx.moveTo(0,0.95);cx.lineTo(0,1.55);cx.stroke();
+  cx.beginPath();cx.moveTo(0,0.72);cx.lineTo(0,1.1);cx.stroke();
+  cx.strokeStyle='rgba(180,90,30,0.35)';
+  cx.lineWidth=0.03;
+  cx.beginPath();cx.moveTo(-0.015,0.72);cx.lineTo(-0.015,1.1);cx.stroke();
   cx.restore();
 
   cx.restore();
@@ -890,33 +1208,33 @@ function drawMaple(lx,ly,sz,rot,alpha,pal,tilt){
 
 function leafPath(c){
   c.beginPath();
-  c.moveTo(0,0.9);
-  // ก้านขึ้นกลาง
-  c.bezierCurveTo(0.08,0.5,-0.08,0.4,0,0.1);
+  c.moveTo(0,0.72);
+  // ขึ้นกลาง
+  c.bezierCurveTo(0.07,0.42,-0.07,0.32,0,0.08);
   // แฉกซ้ายล่าง
-  c.bezierCurveTo(-0.25,0.25,-0.75,0.65,-1.1,0.72);
-  c.bezierCurveTo(-0.95,0.55,-0.8,0.35,-0.6,0.3);
+  c.bezierCurveTo(-0.22,0.20,-0.68,0.58,-1.0,0.65);
+  c.bezierCurveTo(-0.88,0.48,-0.72,0.28,-0.55,0.23);
   // แฉกซ้ายบน
-  c.bezierCurveTo(-0.9,0.1,-1.4,-0.05,-1.45,-0.1);
-  c.bezierCurveTo(-1.2,-0.15,-0.95,-0.35,-0.75,-0.42);
+  c.bezierCurveTo(-0.82,0.05,-1.30,-0.08,-1.35,-0.12);
+  c.bezierCurveTo(-1.10,-0.18,-0.88,-0.32,-0.68,-0.38);
   // แฉกซ้ายกลาง
-  c.bezierCurveTo(-1.0,-0.6,-1.05,-0.95,-0.95,-1.0);
-  c.bezierCurveTo(-0.75,-0.85,-0.55,-0.65,-0.38,-0.62);
+  c.bezierCurveTo(-0.92,-0.55,-0.96,-0.88,-0.87,-0.93);
+  c.bezierCurveTo(-0.68,-0.78,-0.50,-0.60,-0.34,-0.56);
   // แฉกบน
-  c.bezierCurveTo(-0.45,-1.0,-0.35,-1.45,-0.28,-1.6);
-  c.bezierCurveTo(-0.1,-1.35,0,-1.25,0.0,-1.1);
-  c.bezierCurveTo(0.0,-1.25,0.1,-1.35,0.28,-1.6);
-  c.bezierCurveTo(0.35,-1.45,0.45,-1.0,0.38,-0.62);
+  c.bezierCurveTo(-0.40,-0.92,-0.30,-1.32,-0.24,-1.46);
+  c.bezierCurveTo(-0.09,-1.22,0,-1.12,0.0,-1.0);
+  c.bezierCurveTo(0.0,-1.12,0.09,-1.22,0.24,-1.46);
+  c.bezierCurveTo(0.30,-1.32,0.40,-0.92,0.34,-0.56);
   // แฉกขวากลาง
-  c.bezierCurveTo(0.55,-0.65,0.75,-0.85,0.95,-1.0);
-  c.bezierCurveTo(1.05,-0.95,1.0,-0.6,0.75,-0.42);
+  c.bezierCurveTo(0.50,-0.60,0.68,-0.78,0.87,-0.93);
+  c.bezierCurveTo(0.96,-0.88,0.92,-0.55,0.68,-0.38);
   // แฉกขวาบน
-  c.bezierCurveTo(0.95,-0.35,1.2,-0.15,1.45,-0.1);
-  c.bezierCurveTo(1.4,-0.05,0.9,0.1,0.6,0.3);
+  c.bezierCurveTo(0.88,-0.32,1.10,-0.18,1.35,-0.12);
+  c.bezierCurveTo(1.30,-0.08,0.82,0.05,0.55,0.23);
   // แฉกขวาล่าง
-  c.bezierCurveTo(0.8,0.35,0.95,0.55,1.1,0.72);
-  c.bezierCurveTo(0.75,0.65,0.25,0.25,0.0,0.1);
-  c.bezierCurveTo(0.08,0.4,-0.08,0.5,0,0.9);
+  c.bezierCurveTo(0.72,0.28,0.88,0.48,1.0,0.65);
+  c.bezierCurveTo(0.68,0.58,0.22,0.20,0.0,0.08);
+  c.bezierCurveTo(0.07,0.32,-0.07,0.42,0,0.72);
   c.closePath();
 }
 
@@ -926,7 +1244,7 @@ let windX=0, windTarget=0, windT=0;
 const leaves=Array.from({length:28},(_,i)=>({
   x: Math.random()*window.innerWidth,
   y: Math.random()*window.innerHeight,
-  sz: Math.random()*10+8,
+  sz: Math.random()*8+7,
   vx: (Math.random()-.5)*0.3,
   vy: Math.random()*0.5+0.25,
   rot: Math.random()*Math.PI*2,
@@ -1006,7 +1324,6 @@ html { background:#06040f; }
   window.warpBack=function(){window._navigateTo('index.html');};
 })();
 </script>
-<script>setTimeout(()=>{document.documentElement.style.overflow="";},400);</script>
 <script>setTimeout(()=>{document.documentElement.style.overflow="";},400);</script>
 </body>
 </html>

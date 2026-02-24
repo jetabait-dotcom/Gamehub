@@ -3,9 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#04020e">
 <title>AnimeGrid — Game Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+Thai:wght@300;400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
+  html,body{scrollbar-width:none;-ms-overflow-style:none;}
+  html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0;}
+
 :root{
   --bg:#04020e;--sakura:#ff6fa3;--sakura2:#ff9dc8;--sakura-glow:rgba(255,111,163,0.55);
   --sakura-dim:rgba(255,111,163,0.13);--cosmic:#c084fc;--petal:#ffb7d5;
@@ -25,8 +31,8 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 #petals{position:fixed;inset:0;z-index:0;pointer-events:none}
 .wrapper{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
 /* LOADING */
-#loadingOverlay{position:fixed;inset:0;z-index:999;background:var(--bg);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+#loadingOverlay{display:none!important;position:fixed;inset:0;z-index:999;background:var(--bg);
+  flex-direction:column;align-items:center;justify-content:center;gap:16px}
 .spin{width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--sakura);
   border-radius:50%;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -246,6 +252,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:16px 3
 .ac-sub{font-size:11px;color:var(--petal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ac-anime{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ac-loading{padding:16px;text-align:center;color:var(--muted);font-size:13px}
+.ac-head-sect{padding:5px 14px;font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:rgba(0,212,255,.7);background:rgba(0,212,255,.06);border-bottom:1px solid rgba(0,212,255,.1);}
 .modal-hint{font-size:11px;color:var(--muted);background:rgba(255,111,163,.04);
   border:1px solid var(--border);border-radius:8px;padding:9px 13px;line-height:1.6}
 .modal-actions{display:flex;gap:10px}
@@ -291,7 +298,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:16px 3
 </head>
 <body>
 
-<div id="loadingOverlay">
+<div id="loadingOverlay" style="display:none!important">
   <div class="spin"></div>
   <div class="loading-txt">CONNECTING TO FIREBASE...</div>
 </div>
@@ -351,7 +358,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:16px 3
 
 <div class="wrapper">
   <nav>
-    <a class="nav-logo" href="index.html">
+    <a class="nav-logo" href="index.html" onclick="event.preventDefault();warpBack()">
       <div class="logo-cube">🌸</div>
       <span class="logo-label">GAME HUB</span>
     </a>
@@ -359,7 +366,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:16px 3
       <span class="nav-pill">AnimeGrid</span>
       <span class="nav-uid" id="navUid"></span>
       <span style="font-size:11px;color:rgba(255,183,213,.5);font-family:'Orbitron',monospace;letter-spacing:.05em" id="navPlayerNameDisplay"></span>
-      <a class="back-btn" href="index.html">
+      <a class="back-btn" href="index.html" onclick="event.preventDefault();warpBack()">
         <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>กลับ
       </a>
     </div>
@@ -652,6 +659,8 @@ onAuthStateChanged_callback = () => {
 window.onAuthStateChanged_callback = onAuthStateChanged_callback;
 
 /* ── PACKS ── */
+const TMDB_KEY = '00af15d87f33add84d1b9c572dff641b';
+const MOVIE_PACKS = ['movies','movieworld'];
 const PACKS = {
   classic:     { label:'⭐ คลาสสิก',  rows:['ตัวเอกหลัก (MC)','มีพลังพิเศษ','มีทีม / ปาร์ตี้'],          cols:['Shonen Jump','Studio Ghibli','ไม่มีพ่อแม่'] },
   personality: { label:'💥 บุคลิก',   rows:['ขี้โมโห / ก้าวร้าว','ใจดี / เมตตา','เงียบ / มีความลับ'],    cols:['ผมสีพิเศษ','ใส่แว่น','สวมชุดนักเรียน'] },
@@ -659,7 +668,10 @@ const PACKS = {
   world:       { label:'🌍 โลก',       rows:['โลกแฟนตาซี','โลกสมัยใหม่','โลกหลังหายนะ'],                 cols:['มาจากญี่ปุ่น/โลกจริง','ไม่ใช่มนุษย์','เป็นเด็ก / วัยรุ่น'] },
   genre:       { label:'🎭 ประเภท',    rows:['จากซีรีส์ Action','จากซีรีส์ Romance','จากซีรีส์ Isekai'],  cols:['หน้าหล่อ / สวย','ฉลาด / วางแผนเก่ง','มักทำเรื่องตลก / ขำ'] },
   hard:        { label:'💀 ยาก',       rows:['ตายในเรื่อง','เป็น villain','เป็นตัวสนับสนุน (support)'],    cols:['ชนะโดยไม่ใช้พลัง','มีสองบุคลิก','ชื่อเรื่องขึ้นต้นด้วย A-F'] },
+  movies:      { label:'🎬 หนัง',      rows:['ตัวร้าย / Villain','พระเอก / Hero','มีพลังพิเศษ'],            cols:['Marvel / DC','Disney / Pixar','หนัง Sci-Fi'] },
+  movieworld:  { label:'🌟 โลกหนัง',  rows:['จากหนัง Action','จากหนัง Horror','จากหนัง Animation'],       cols:['ตายในเรื่อง','มีพลังพิเศษ','เป็นมนุษย์ธรรมดา'] },
 };
+function isMoviePack(){ return MOVIE_PACKS.includes(selPack); }
 const WIN_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 
 /* ── STATE ── */
@@ -963,8 +975,11 @@ function openModal(idx) {
   state.activeCellIdx=idx; selAc=null;
   document.getElementById('qRow').textContent = pack.rows[r];
   document.getElementById('qCol').textContent = pack.cols[c];
+  const isMovie = isMoviePack();
   document.getElementById('modalHint').innerHTML =
-    `🌸 ตัวละครที่เป็น <strong style="color:var(--sakura);">"${pack.rows[r]}"</strong> และ <strong style="color:var(--cosmic);">"${pack.cols[c]}"</strong>`;
+    isMovie
+      ? `🎬 ตัวละคร/หนังที่เป็น <strong style="color:var(--sakura);">"${pack.rows[r]}"</strong> และ <strong style="color:var(--cosmic);">"${pack.cols[c]}"</strong>`
+      : `🌸 ตัวละครที่เป็น <strong style="color:var(--sakura);">"${pack.rows[r]}"</strong> และ <strong style="color:var(--cosmic);">"${pack.cols[c]}"</strong>`;
   const badge = document.getElementById('modalTurnBadge');
   if (gameMode==='pvp') {
     badge.style.display='flex';
@@ -972,6 +987,7 @@ function openModal(idx) {
     badge.textContent='👤 ตา: '+state.playerNames[currentPlayer];
   } else { badge.style.display='none'; }
   const inp = document.getElementById('charInput');
+  inp.placeholder = isMovie ? 'พิมพ์ชื่อตัวละคร / หนัง...' : 'พิมพ์ชื่อตัวละคร...';
   inp.value=''; document.getElementById('seriesInput').value='';
   inp.style.borderColor=''; inp.style.boxShadow=''; hideAc();
   document.getElementById('inputModal').classList.add('open');
@@ -1000,13 +1016,72 @@ document.getElementById('charInput').addEventListener('keydown', e => {
 function hlAc(items){items.forEach((x,i)=>x.classList.toggle('active',i===acIdx));if(acIdx>=0&&items[acIdx])items[acIdx].scrollIntoView({block:'nearest'});}
 async function doSearch(q) {
   const l=document.getElementById('acList');
-  l.innerHTML='<div class="ac-loading">🌸 กำลังค้นหา...</div>'; l.classList.add('open'); acIdx=-1;
+  l.innerHTML=`<div class="ac-loading">${isMoviePack()?'🎬':'🌸'} กำลังค้นหา...</div>`; l.classList.add('open'); acIdx=-1;
   try {
-    const r=await fetch(`https://api.jikan.moe/v4/characters?q=${encodeURIComponent(q)}&limit=8&order_by=favorites&sort=desc`);
-    if(!r.ok) throw 0;
-    const d=await r.json(); showAc(d.data||[]);
+    if (isMoviePack()) {
+      await doSearchMovie(q);
+    } else {
+      const r=await fetch(`https://api.jikan.moe/v4/characters?q=${encodeURIComponent(q)}&limit=8&order_by=favorites&sort=desc`);
+      if(!r.ok) throw 0;
+      const d=await r.json(); showAc(d.data||[]);
+    }
   } catch { l.innerHTML='<div class="ac-loading" style="color:rgba(255,111,163,.5)">⚠️ ค้นหาไม่ได้ชั่วคราว</div>'; }
 }
+
+async function doSearchMovie(q) {
+  const l=document.getElementById('acList');
+  try {
+    const [pRes, mRes] = await Promise.all([
+      fetch(`https://api.themoviedb.org/3/search/person?api_key=${TMDB_KEY}&query=${encodeURIComponent(q)}&language=en-US&page=1`).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(q)}&language=en-US&page=1`).then(r=>r.ok?r.json():null).catch(()=>null)
+    ]);
+    const people = (pRes?.results||[]).slice(0,5);
+    const movies = (mRes?.results||[]).slice(0,4);
+    if(!people.length && !movies.length){l.innerHTML='<div class="ac-loading">ไม่พบผลลัพธ์</div>';return;}
+    l.innerHTML='';
+    if(people.length){
+      const h=document.createElement('div'); h.className='ac-head-sect'; h.textContent='🎭 ตัวละคร / นักแสดง'; l.appendChild(h);
+      people.forEach(p=>{
+        const name=p.name||'';
+        const img=p.profile_path?`https://image.tmdb.org/t/p/w92${p.profile_path}`:'';
+        const movie=(p.known_for||[]).map(k=>k.title||k.name||'').filter(Boolean).slice(0,1).join(', ')||'';
+        const item=document.createElement('div'); item.className='ac-item';
+        item.innerHTML=`${img?`<img class="ac-img" src="${esc(img)}" loading="lazy" onerror="this.style.display='none'">`:`<div class="ac-img-placeholder">🎬</div>`}
+          <div class="ac-info">
+            <div class="ac-name">${esc(name)}</div>
+            ${movie?`<div class="ac-anime">🎬 ${esc(movie)}</div>`:''}
+          </div>`;
+        item.onclick=()=>{
+          document.getElementById('charInput').value=name;
+          if(movie) document.getElementById('seriesInput').value=movie;
+          selAc={name,anime:movie,img}; hideAc(); document.getElementById('charInput').focus();
+        };
+        l.appendChild(item);
+      });
+    }
+    if(movies.length){
+      const h=document.createElement('div'); h.className='ac-head-sect'; h.textContent='🎥 หนัง'; l.appendChild(h);
+      movies.forEach(m=>{
+        const title=m.title||m.original_title||'';
+        const img=m.poster_path?`https://image.tmdb.org/t/p/w92${m.poster_path}`:'';
+        const year=m.release_date?m.release_date.slice(0,4):'';
+        const item=document.createElement('div'); item.className='ac-item';
+        item.innerHTML=`${img?`<img class="ac-img" src="${esc(img)}" loading="lazy" onerror="this.style.display='none'">`:`<div class="ac-img-placeholder">🎥</div>`}
+          <div class="ac-info">
+            <div class="ac-name">${esc(title)}</div>
+            ${year?`<div class="ac-sub">${year}</div>`:''}
+          </div>`;
+        item.onclick=()=>{
+          document.getElementById('charInput').value=title;
+          document.getElementById('seriesInput').value=title;
+          selAc={name:title,anime:title,img}; hideAc(); document.getElementById('charInput').focus();
+        };
+        l.appendChild(item);
+      });
+    }
+  } catch { l.innerHTML='<div class="ac-loading" style="color:rgba(255,111,163,.5)">⚠️ ค้นหาไม่ได้ชั่วคราว</div>'; }
+}
+
 function showAc(chars) {
   const l=document.getElementById('acList');
   if(!chars.length){l.innerHTML='<div class="ac-loading">ไม่พบตัวละคร</div>';return;}
@@ -1166,16 +1241,63 @@ const cv=document.getElementById('petals'),cx=cv.getContext('2d');
 let W,H;
 function rsz(){W=cv.width=innerWidth;H=cv.height=innerHeight;}
 rsz(); addEventListener('resize',rsz);
-const stars=Array.from({length:150},()=>({x:Math.random()*3000,y:Math.random()*2000,r:Math.random()*.9+.1,a:Math.random()*.7+.1,t:Math.random()*Math.PI*2}));
+// Reduced star count from 150→60, skip per-frame sin for faster rendering
+const stars=Array.from({length:60},()=>({x:Math.random()*3000,y:Math.random()*2000,r:Math.random()*.9+.1,a:Math.random()*.7+.1,t:Math.random()*Math.PI*2}));
 const mkP=()=>({x:Math.random()*(innerWidth||1400),y:-Math.random()*200,sz:Math.random()*5+3,sp:Math.random()*.6+.25,dr:Math.random()*.35-.17,rt:Math.random()*Math.PI*2,rs:(Math.random()-.5)*.04,al:Math.random()*.45+.2,cl:['#ff6fa3','#ffb7d5','#f0abfc','#ff9dc8','#e879a0'][Math.floor(Math.random()*5)]});
-const pts=Array.from({length:22},mkP); let fr=0;
+const pts=Array.from({length:18},mkP); let fr=0;
 function draw(){
   cx.clearRect(0,0,W,H); fr++;
-  stars.forEach(s=>{s.t+=.018;const a=s.a*(.55+.45*Math.sin(s.t));cx.beginPath();cx.arc(s.x%W,s.y%H,s.r,0,Math.PI*2);cx.fillStyle=`rgba(255,183,213,${a})`;cx.fill();});
+  // Stars: update alpha every 3 frames for perf
+  if(fr%3===0){
+    stars.forEach(s=>{s.t+=.054;s._a=s.a*(.55+.45*Math.sin(s.t));});
+  }
+  stars.forEach(s=>{cx.globalAlpha=s._a||s.a;cx.fillStyle='rgba(255,183,213,1)';cx.beginPath();cx.arc(s.x%W,s.y%H,s.r,0,Math.PI*2);cx.fill();});
+  cx.globalAlpha=1;
   pts.forEach(p=>{p.y+=p.sp;p.x+=p.dr+Math.sin(fr*.012+p.rt)*.35;p.rt+=p.rs;if(p.y>H+20)Object.assign(p,mkP(),{x:Math.random()*W,y:-20});cx.save();cx.translate(p.x,p.y);cx.rotate(p.rt);cx.globalAlpha=p.al;cx.beginPath();cx.ellipse(0,0,p.sz,p.sz*.58,0,0,Math.PI*2);cx.fillStyle=p.cl;cx.fill();cx.restore();});
   requestAnimationFrame(draw);
 }
 draw();
 </script>
+
+<!-- ═══ PAGE TRANSITION ═══ -->
+<style>
+/* หน้าเริ่มต้นที่ดำ แล้ว fade in เอง = ไม่กระพริบ */
+html { background:#04020e; }
+#curtain{
+  position:fixed;inset:0;z-index:9999;pointer-events:none;
+  background:#04020e;opacity:1;
+  transition:opacity .32s ease;
+}
+#curtain.fade-in{opacity:0;pointer-events:none;}
+#curtain.fade-out{opacity:1;pointer-events:all;}
+@keyframes fadePageIn{from{opacity:0}to{opacity:1}}
+.wrapper{animation:fadePageIn .32s ease both;}
+</style>
+<div id="curtain"></div>
+<script>
+(function(){
+  const c=document.getElementById('curtain');
+  /* Fade in ทันทีที่หน้าโหลด */
+  requestAnimationFrame(()=>requestAnimationFrame(()=>c.classList.add('fade-in')));
+  window._navigateTo=function(url){
+    c.classList.remove('fade-in');
+    c.classList.add('fade-out');
+    setTimeout(()=>location.href=url,300);
+  };
+  window.warpBack=function(){window._navigateTo('index.html');};
+  // Intercept win overlay GameHub button
+  document.addEventListener('click',e=>{
+    const el=e.target.closest('[onclick]');
+    if(el){
+      const oc=el.getAttribute('onclick')||'';
+      if(oc.includes('index.html')){
+        e.stopPropagation();e.preventDefault();
+        window._navigateTo('index.html');
+      }
+    }
+  },true);
+})();
+</script>
+<script>setTimeout(()=>{document.documentElement.style.overflow="";},400);</script>
 </body>
 </html>

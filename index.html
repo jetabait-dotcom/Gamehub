@@ -3,9 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#070510">
 <title>GAME HUB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+Thai:wght@300;400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
+  /* Hide scrollbar */
+  html, body { scrollbar-width: none; -ms-overflow-style: none; }
+  html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
+
   :root {
     --deep:        #070510;
     --gold:        #ffd700;
@@ -299,6 +306,8 @@
     opacity: 0;
     animation: riseUp .6s forwards;
     position: relative;
+    will-change: transform;
+    contain: layout style;
   }
 
   .game-card:nth-child(1) { animation-delay: .42s; }
@@ -373,6 +382,7 @@
     z-index: 1;
     animation: floatEmoji 4s ease-in-out infinite;
     filter: drop-shadow(0 0 18px rgba(255,255,255,.25));
+    will-change: transform;
   }
   @keyframes floatEmoji {
     0%,100% { transform: translateY(0) scale(1); }
@@ -756,34 +766,6 @@
         <div class="card-glow-strip"></div>
       </div>
 
-      <!-- 2. Anime Trivia -->
-      <div class="game-card available theme-trivia" onclick="window.location.href='trivia.html'">
-        <div class="card-art">
-          <div class="card-art-bg"></div>
-          <div class="card-art-emoji" style="animation-delay:.5s">🧠</div>
-          <div class="card-badge badge-new">✨ ใหม่</div>
-        </div>
-        <div class="card-body">
-          <div class="card-name">Anime Trivia</div>
-          <div class="card-meta">
-            <span>👤 1 คน</span>
-            <span class="dot">•</span>
-            <span>🕐 5–15 นาที</span>
-          </div>
-          <div class="card-desc">ทดสอบความรู้อนิเมะของคุณ! 500+ คำถาม<br>แบ่งระดับตั้งแต่มือใหม่จนถึง otaku แท้</div>
-          <div class="card-tags">
-            <span class="card-tag">❓ Quiz</span>
-            <span class="card-tag">🏆 Ranking</span>
-            <span class="card-tag">📊 Stats</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-stars">★★★★☆ <span>4.8</span></div>
-            <button class="play-btn ready" style="background:linear-gradient(135deg,var(--neon-blue),#0066ff);" onclick="window.location.href='trivia.html'">▶ เล่นเลย</button>
-          </div>
-        </div>
-        <div class="card-glow-strip"></div>
-      </div>
-
       <!-- 3. AnimeGuess -->
       <div class="game-card available theme-quiz" onclick="window.location.href='animeguess.html'">
         <div class="card-art">
@@ -812,34 +794,36 @@
         <div class="card-glow-strip"></div>
       </div>
 
-      <!-- 4. Memory Match -->
-      <div class="game-card locked theme-memory">
+      <!-- 4. Anime Tier List -->
+      <div class="game-card available theme-memory" onclick="window.location.href='animetierlist.html'">
         <div class="card-art">
           <div class="card-art-bg"></div>
-          <div class="card-art-emoji" style="animation-delay:1.5s">🃏</div>
-          <div class="card-badge badge-soon">🔒 เร็วๆ นี้</div>
+          <div class="card-art-emoji" style="animation-delay:1.5s">🏆</div>
+          <div class="card-badge badge-new">✨ ใหม่</div>
         </div>
         <div class="card-body">
-          <div class="card-name">Memory Match</div>
+          <div class="card-name">Anime Tier List</div>
           <div class="card-meta">
-            <span>👥 1–2 คน</span>
+            <span>👥 1–6 คน</span>
             <span class="dot">•</span>
-            <span>🕐 10 นาที</span>
+            <span>🕐 ไม่จำกัด</span>
           </div>
-          <div class="card-desc">จับคู่การ์ดภาพอนิเมะ ฝึกความจำ<br>พร้อม timer และ leaderboard</div>
+          <div class="card-desc">ดึงตัวละครจากอนิเมะทั้งเรื่อง แล้วจัดอันดับ<br>ลาก-วาง ถกกันกับเพื่อนได้เลย!</div>
           <div class="card-tags">
-            <span class="card-tag">🧩 Memory</span>
-            <span class="card-tag">🌟 Cards</span>
+            <span class="card-tag">🎌 API</span>
+            <span class="card-tag">🏅 Ranking</span>
+            <span class="card-tag">❄️ Winter</span>
           </div>
           <div class="card-footer">
-            <div class="card-stars" style="color:rgba(255,255,255,.25)">Coming Soon</div>
-            <button class="play-btn locked">🔒 ล็อก</button>
+            <div class="card-stars">★★★★★ <span>5.0</span></div>
+            <button class="play-btn ready" style="background:linear-gradient(135deg,#5baee8,#2060c0);" onclick="event.stopPropagation();window.location.href='animetierlist.html'">▶ เล่นเลย</button>
           </div>
         </div>
         <div class="card-glow-strip"></div>
       </div>
 
-      <!-- 5. Speed Draw -->
+
+      <!-- 6. Speed Draw -->
       <div class="game-card locked theme-speed">
         <div class="card-art">
           <div class="card-art-bg"></div>
@@ -903,7 +887,7 @@
       <div class="stat-label">เกมทั้งหมด</div>
     </div>
     <div class="stat-item">
-      <div class="stat-num">3</div>
+      <div class="stat-num">4</div>
       <div class="stat-label">พร้อมเล่น</div>
     </div>
     <div class="stat-item">
@@ -927,12 +911,12 @@
 <script>
 // ── Player Name Management ──
 const NAME_KEY = 'animegrid_player_name';
+const _navPlayerName = document.getElementById('navPlayerName');
 
 function getPlayerName() { return localStorage.getItem(NAME_KEY) || ''; }
 
 function applyNameToNav() {
-  const n = getPlayerName();
-  document.getElementById('navPlayerName').textContent = n || 'PLAYER';
+  _navPlayerName.textContent = getPlayerName() || 'PLAYER';
 }
 
 function saveName() {
@@ -1111,9 +1095,10 @@ function resize() {
   H = canvas.height = window.innerHeight;
 }
 resize();
-window.addEventListener('resize', resize);
+window.addEventListener('resize', resize, { passive: true });
 
-for (let i = 0; i < 55; i++) {
+// Reduced particle count & removed O(n²) connection loop for better performance
+for (let i = 0; i < 35; i++) {
   dots.push({
     x: Math.random() * 2000,
     y: Math.random() * 1200,
@@ -1124,36 +1109,20 @@ for (let i = 0; i < 55; i++) {
   });
 }
 
+let _raf;
 function drawParticles() {
   ctx.clearRect(0, 0, W, H);
-  dots.forEach(d => {
+  for (let i = 0; i < dots.length; i++) {
+    const d = dots[i];
     d.x += d.vx; d.y += d.vy;
-    if (d.x < 0) d.x = W;
-    if (d.x > W) d.x = 0;
-    if (d.y < 0) d.y = H;
-    if (d.y > H) d.y = 0;
+    if (d.x < 0) d.x = W; else if (d.x > W) d.x = 0;
+    if (d.y < 0) d.y = H; else if (d.y > H) d.y = 0;
     ctx.beginPath();
     ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(0,212,255,${d.a})`;
     ctx.fill();
-  });
-  // Draw subtle connections
-  for (let i = 0; i < dots.length; i++) {
-    for (let j = i + 1; j < dots.length; j++) {
-      const dx = dots[i].x - dots[j].x;
-      const dy = dots[i].y - dots[j].y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist < 110) {
-        ctx.beginPath();
-        ctx.moveTo(dots[i].x, dots[i].y);
-        ctx.lineTo(dots[j].x, dots[j].y);
-        ctx.strokeStyle = `rgba(0,212,255,${.06 * (1 - dist/110)})`;
-        ctx.lineWidth = .5;
-        ctx.stroke();
-      }
-    }
   }
-  requestAnimationFrame(drawParticles);
+  _raf = requestAnimationFrame(drawParticles);
 }
 drawParticles();
 
@@ -1171,5 +1140,45 @@ document.querySelectorAll('.game-card.available').forEach(card => {
 });
 </script>
 
+<!-- ═══ PAGE TRANSITION ═══ -->
+<style>
+/* หน้าเริ่มต้นที่ดำ แล้ว fade in เอง = ไม่กระพริบ */
+html { background:#07050f; }
+#curtain{
+  position:fixed;inset:0;z-index:9999;pointer-events:none;
+  background:#07050f;opacity:1;
+  transition:opacity .32s ease;
+}
+#curtain.fade-in{opacity:0;pointer-events:none;}
+#curtain.fade-out{opacity:1;pointer-events:all;}
+@keyframes fadePageIn{from{opacity:0}to{opacity:1}}
+.wrap{animation:fadePageIn .32s ease both;}
+</style>
+<div id="curtain"></div>
+<script>
+(function(){
+  const c=document.getElementById('curtain');
+  /* Fade in ทันทีที่หน้าโหลด */
+  requestAnimationFrame(()=>requestAnimationFrame(()=>c.classList.add('fade-in')));
+  window._navigateTo=function(url){
+    c.classList.remove('fade-in');
+    c.classList.add('fade-out');
+    setTimeout(()=>location.href=url,300);
+  };
+
+  function navigateTo(url){ window._navigateTo(url); }
+
+  document.querySelectorAll('.game-card.available').forEach(card=>{
+    card.addEventListener('click',e=>{
+      e.preventDefault();e.stopPropagation();
+      const btn=card.querySelector('.play-btn');
+      const href=btn?.getAttribute('onclick')?.match(/href='([^']+)'/)?.[1]||
+                 btn?.getAttribute('onclick')?.match(/location\.href='([^']+)'/)?.[1];
+      if(href)navigateTo(href);
+    },true);
+  });
+  // play-btn handled by card click; no separate listener needed
+})();
+</script>
 </body>
 </html>
